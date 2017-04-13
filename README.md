@@ -3,7 +3,7 @@ Oz Project
 
 Type
 ----
-\<id\> ::= null | id(id:\<idNum\> color:\<color\>) name:Name)
+\<id\> ::= null | id(id:\<idNum\> color:\<color\>) name:Name)\n
 \<idNum\> ::= 1 | 2 | ... | Input.nbPlayer
 \<color\> ::= red | blue | green | yellow | white | black
 | c(\<colorNum\> \<colorNum\> \<colorNum\>)
