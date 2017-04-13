@@ -47,6 +47,7 @@ in
 
 %%%% Description of the map %%%%
 
+  %The representation of the map can be found on the file MapInstruction.xml and visible on draw.io
    NRow = 5%10
    NColumn = 10
 
