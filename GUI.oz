@@ -72,7 +72,8 @@ in
 
 
 %%%%% Squares of water and island
-   Squares = square(0:label(text:"" width:1 height:1 bg:c(102 102 255))
+   Squares = square(
+        0:label(text:"" width:1 height:1 bg:c(102 102 255))
 		    1:label(text:"" borderwidth:5 relief:raised width:1 height:1 bg:c(153 76 0))
 		   )
 
