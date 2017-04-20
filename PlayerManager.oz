@@ -1,21 +1,19 @@
+
 functor
 import
-  Player042BasicAI
-  Player023AdvancedAI
-  Player005Custom
-  Player053Human
-  ....
+   Player001AI
+   Player002AI
+   %Player005Custom
+   %Player053Human
 export
-  playerGenerator:PlayerGenerator
+   playerGenerator:PlayerGenerator
 define
-  PlayerGenerator
+   PlayerGenerator
 in
-  fun{PlayerGenerator Kind Color ID}
-
-    case Kind
-      of player042basicai then {Player042BasicAI.portPlayer Color ID}
-      [] player005custom then {Player005Custom.portPlayer Color ID}
-      ...
-    end
-  end
+   fun{PlayerGenerator Kind Color ID}
+      case Kind
+         of basicAI then {Player001AI.portPlayer Color ID}
+         [] player002ai then {Player002AI.portPlayer Color ID}
+      end
+   end
 end
