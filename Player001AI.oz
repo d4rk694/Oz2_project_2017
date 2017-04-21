@@ -10,7 +10,6 @@ define
 	StartPlayer
   TreatStream
 	Dive
-
 in
   fun{StartPlayer Color ID}
   Stream
@@ -29,7 +28,7 @@ proc{TreatStream Stream Color IDnum CurrentPosition} % has as many parameters as
     of nil then skip
 
     [] initPosition(?ID ?Position)|T then
-		ID = id(id:IDnum color:Color name:'Player01')
+		ID = id(id:IDnum color:Color name:'Player001')
     %Position = pt(x:({OS.rand}mod 10)+1 y:({OS.rand}mod 10)+1)
 		Position = pt(x:({OS.rand}mod 10)+1 y:({OS.rand}mod 10)+1)
     {TreatStream T Color ID Position}
