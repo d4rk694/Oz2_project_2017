@@ -19,7 +19,7 @@ in
         {TreatStream Stream Color ID}
         end
         Port
-end
+	end
 
 proc{TreatStream Stream Color Idnum } % has as many parameters as you want
     case Stream

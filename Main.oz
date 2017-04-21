@@ -51,11 +51,9 @@ in
   for I in 1..Input.nbPlayer do
     {InitPositionPlayers I}
   end
-  {System.showInfo 'Dive ?'}
 
   for I in 1..Input.nbPlayer do
     {MovePlayers I}
   end
-
 
 end
