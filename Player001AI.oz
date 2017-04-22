@@ -8,41 +8,62 @@ export
    portPlayer:StartPlayer
 define
 
-%TODO
-	fun{GenerateMove CurrentPosition}
-	 Move
-	 Direction
+	%Get a random element From Result, where N is Max index to choose
+	fun{GetRandomElem Result N} I in
+		I = ({OS.rand} mod N) + 1
+		{GetElementInList Result I}
+	end
+
+	fun{GetElementInList L I}
+		case L of H|T then
+    	if I == 1 then
+    		H
+      else
+	      {GetElementInList T I-1}
+      end
+		[] nil then
+			nil
+   	end
+	end
+
+%TODO Check Island
+	fun{GenerateDirection CurrentPosition}
+ 		Move
+ 		Direction
+		ListDirection
 		in
-		Move = ({OS.rand} mod 4)
-		case Move of 0 then
+		ListDirection = [north south east west surface]
+		Move = {GetRandomElem ListDirection 5}
+
+		case Move of north then
 			if(CurrentPosition.x-1 == 0) then
-				Direction = {GenerateMove CurrentPosition}
+				Direction = {GenerateDirection CurrentPosition}
 			else
 				Direction = north
 			end
-			Direction
-	 [] 1 then
+		[] surface then
+			 Direction = surface
+	 [] east then
 			if(CurrentPosition.y+1 == (Input.nColumn)+1) then
-				Direction = {GenerateMove CurrentPosition}
+				Direction = {GenerateDirection CurrentPosition}
 			else
 				Direction = east
 			end
-			Direction
-	 [] 2 then
+	 [] south then
 			if(CurrentPosition.x+1 == (Input.nRow)+1) then
-				Direction =  {GenerateMove CurrentPosition}
+				Direction =  {GenerateDirection CurrentPosition}
 			else
 				Direction = south
 			end
-			Direction
-	 [] 3 then
+	 [] west then
 			if(CurrentPosition.y-1 == 0) then
-				Direction = {GenerateMove CurrentPosition}
+				Direction = {GenerateDirection CurrentPosition}
 			else
 				Direction = west
 			end %else
-			Direction
+
 	 end %case
+	 Direction
 	end %fun
 
 	%TODO
@@ -57,6 +78,8 @@ define
 		Position = pt(x:CurrentPosition.x+1 y:CurrentPosition.y)
 		[] west then
 		Position = pt(x:CurrentPosition.x y:CurrentPosition.y-1)
+		[] surface then
+		Position = CurrentPosition
 		end %case
 		Position
 	end %fun
@@ -202,7 +225,7 @@ end %fun
 
 			[]move(?ID ?Position ?Direction)|T then NewState Pos in
 			ID = State.idPlayer
-			Direction = {GenerateMove State.currentPosition}
+			Direction = {GenerateDirection State.currentPosition}
 			Pos = {GetNewPosition Direction State.currentPosition}
 			NewState = {StateModification State position Pos}
 			Position = NewState.currentPosition
