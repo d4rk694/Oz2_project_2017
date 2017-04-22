@@ -59,6 +59,7 @@ define
           %broadcast that player is at the surface and stay the number of Input.TurnSurface before playing again
 
       %else at the surface
+      skip
   end
 
 
