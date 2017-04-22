@@ -35,8 +35,15 @@ define
   end
 
 
-  proc{StartTurnByTurn} %State foreach player State(1:(Surfaceturn:0 lives:4) 2:  ... Input.nbPlayers)
+  proc{StartTurnByTurn State} %State foreach player State(1:(Surfaceturn:0 lives:4) 2:  ... Input.nbPlayers)
+  %only for debug
+  for I in 1..10 do
     %foreach players
+    for J in 1..Input.nbPlayer do
+      {Delay 500}
+      {System.showInfo 'turn '# I #'for player '#J}
+      {MovePlayers J}
+
       %check if submarine is under the surface
         %if first round or previous rounds the player is at the surface => send Dive
 
@@ -59,6 +66,10 @@ define
           %broadcast that player is at the surface and stay the number of Input.TurnSurface before playing again
 
       %else at the surface
+
+    end %end foreach player
+  end %end for 1..10
+
       skip
   end
 
@@ -79,9 +90,11 @@ in
   for I in 1..Input.nbPlayer do
     {InitPositionPlayers I}
   end
-
-  for I in 1..Input.nbPlayer do
-    {MovePlayers I}
+  if(Input.isTurnByTurn) then
+    {StartTurnByTurn nil}
+  else
+    {System.showInfo 'simultaneous game not implemented yet!'}
+    skip
   end
 
 end
