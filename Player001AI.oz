@@ -13,7 +13,7 @@ define
 		I = ({OS.rand} mod N) + 1
 		{GetElementInList Result I}
 	end
-
+	%Get the I th element of L
 	fun{GetElementInList L I}
 		case L of H|T then
     	if I == 1 then
@@ -36,7 +36,7 @@ define
 		Move = {GetRandomElem ListDirection 5}
 
 		case Move of north then
-			if(CurrentPosition.x-1 == 0) then
+			if(CurrentPosition.x-1 == 0  ) then
 				Direction = {GenerateDirection CurrentPosition}
 			else
 				Direction = north
@@ -88,7 +88,7 @@ define
 	%Param Value = the attribute to update with the value of Result
 	fun{StateModification State Value Result} NewState in
 		NewState = state(idPlayer:State.idPlayer currentPosition:_ counterMine:_ counterMissile:_ couterDrone:_ counterSonar:_)
-		%State=state(idPlayer:id(id:ID color:Color name:'Player001') currentPosition:_ counterMine:0 counterMissile:0 couterDrone:0 counterSonar: 0)
+
 		if Value == 'position' then
 			NewState.currentPosition = Result
 		else
@@ -118,23 +118,20 @@ define
 			else
 				NewState.counterSonar = State.counterSonar
 			end
+		else
+			NewState.counterMine = State.counterMine
+			NewState.counterMissile = State.counterMissile
+			NewState.counterSonar = State.counterSonar
+			NewState.counterDrone = State.counterDrone
 		end
 		NewState
 	end
 
 	%TODO
-	fun{GenerateItem} RandomValue ReturnValue in
-		RandomValue = {OS.rand mod 4}
-		case randomValue of 0 then
-		ReturnValue = mine
-		[] 1 then
-		ReturnValue = missile
-		 [] 2 then
-		ReturnValue = sonar
-		 [] 3 then
-		ReturnValue = drone
-		 end%case
-		 ReturnValue
+	fun{GenerateItem} List Value in
+		List = [mine missile sonar drone]
+		Value = {GetRandomElem List 4}
+		Value
 	end
 
 	%TODO
@@ -218,86 +215,86 @@ end %fun
 	    of nil then skip
 
 	    [] initPosition(?ID ?Position)|T then NewState in
-			ID = State.idPlayer
-			State.currentPosition = pt(x:({OS.rand}mod 10)+1 y:({OS.rand}mod 10)+1)
-			Position = State.currentPosition
-	    {TreatStream T State}
+				ID = State.idPlayer
+				State.currentPosition = pt(x:({OS.rand}mod 10)+1 y:({OS.rand}mod 10)+1)
+				Position = State.currentPosition
+		    {TreatStream T State}
 
 			[]move(?ID ?Position ?Direction)|T then NewState Pos in
-			ID = State.idPlayer
-			Direction = {GenerateDirection State.currentPosition}
-			Pos = {GetNewPosition Direction State.currentPosition}
-			NewState = {StateModification State position Pos}
-			Position = NewState.currentPosition
-			{TreatStream T NewState}
+				ID = State.idPlayer
+				Direction = {GenerateDirection State.currentPosition}
+				Pos = {GetNewPosition Direction State.currentPosition}
+				NewState = {StateModification State position Pos}
+				Position = NewState.currentPosition
+				{TreatStream T NewState}
 
 			[] dive|T then NewState in
-			Dive = true
-			{TreatStream T NewState}
+				Dive = true
+				{TreatStream T NewState}
 
 			[] chargeItem(?ID ?KindItem)|T then NewItem NewState in
-			ID = State.idPlayer
-			NewItem = {GenerateItem}
-			NewState = {StateModification State 'chargeItem' NewItem}
-			KindItem = {CheckCounterItemUpdated State NewItem}
-			{TreatStream T NewState}
+				ID = State.idPlayer
+				NewItem = {GenerateItem}
+				NewState = {StateModification State 'chargeItem' NewItem}
+				KindItem = {CheckCounterItemUpdated State NewItem}
+				{TreatStream T NewState}
 
 			[]fireItem(?ID ?KindItem)|T then ItemReady NewState Position in
-			ID = State.idPlayer
-			ItemReady = {GetItemReady State} %Méthode à créer !
-	%		if ItemReady == nil then
-				%ne rien faire
-	%		else
-	%			NewState = {StateModification State 'fireItem' ItemReady}
-	%			KindItem = {PositionToFire ItemReady State.currentPosition}
-	%		end
-	%		KindItem=mine(pt:(x:1 y:1))
-	%		{TreatStream T NewState}
+				ID = State.idPlayer
+				ItemReady = {GetItemReady State} %Méthode à créer !
+				%		if ItemReady == nil then
+							%ne rien faire
+				%		else
+				%			NewState = {StateModification State 'fireItem' ItemReady}
+				%			KindItem = {PositionToFire ItemReady State.currentPosition}
+				%		end
+				%		KindItem=mine(pt:(x:1 y:1))
+				%		{TreatStream T NewState}
 
-		[]fireMine(?ID ?Mine)|T then NewState in
-		{TreatStream T NewState}
+			[]fireMine(?ID ?Mine)|T then NewState in
+				{TreatStream T NewState}
 
-		[]isSurface(?ID ?Answer)|T then NewState in
-		{TreatStream T NewState}
+			[]isSurface(?ID ?Answer)|T then NewState in
+				{TreatStream T NewState}
 
-		[]sayMove(ID Direction)|T then NewState in
-		{TreatStream T NewState}
+			[]sayMove(ID Direction)|T then NewState in
+				{TreatStream T NewState}
 
-		[]saySurface(ID)|T then NewState in
-		{TreatStream T NewState}
+			[]saySurface(ID)|T then NewState in
+				{TreatStream T NewState}
 
-		[]sayCharge(ID KindItem)|T then NewState in
-		{TreatStream T NewState}
+			[]sayCharge(ID KindItem)|T then NewState in
+				{TreatStream T NewState}
 
-		[]sayMinePlaced(ID)|T then NewState in
-		{TreatStream T NewState}
+			[]sayMinePlaced(ID)|T then NewState in
+				{TreatStream T NewState}
 
-		[]sayMissileExplode(ID Position ?Message)|T then NewState in
-		{TreatStream T NewState}
+			[]sayMissileExplode(ID Position ?Message)|T then NewState in
+				{TreatStream T NewState}
 
-		[]sayMineExplode(ID Position ?Message)|T then NewState in
-		{TreatStream T NewState}
+			[]sayMineExplode(ID Position ?Message)|T then NewState in
+				{TreatStream T NewState}
 
-		[]sayPassingDrone(Drone ?ID ?Answer)|T then NewState in
-		{TreatStream T NewState}
+			[]sayPassingDrone(Drone ?ID ?Answer)|T then NewState in
+				{TreatStream T NewState}
 
-		[]sayAnswerDrone(Drone ID Answer)|T then NewState in
-		{TreatStream T NewState}
+			[]sayAnswerDrone(Drone ID Answer)|T then NewState in
+				{TreatStream T NewState}
 
-		[]sayPassingSonar(?ID ?Answer)|T then NewState in
-		{TreatStream T NewState}
+			[]sayPassingSonar(?ID ?Answer)|T then NewState in
+				{TreatStream T NewState}
 
-		[]sayAnswerSonar(ID Answer)|T then NewState in
-		{TreatStream T NewState}
+			[]sayAnswerSonar(ID Answer)|T then NewState in
+				{TreatStream T NewState}
 
-		[]sayDeath(ID)|T then NewState in
-		{TreatStream T NewState}
+			[]sayDeath(ID)|T then NewState in
+				{TreatStream T NewState}
 
-		[]sayDamageTaken(ID Damage LifeLeft)|T then NewState in
-		{TreatStream T NewState}
+			[]sayDamageTaken(ID Damage LifeLeft)|T then NewState in
+				{TreatStream T NewState}
 
-		[] _|T then NewState in
-    {TreatStream T NewState}
+			[] _|T then NewState in
+	    	{TreatStream T NewState}
 		end %case
 	end %proc
 end
