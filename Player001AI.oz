@@ -7,12 +7,12 @@ import
 export
    portPlayer:StartPlayer
 define
-
 	%Get a random element From Result, where N is Max index to choose
 	fun{GetRandomElem Result N} I in
 		I = ({OS.rand} mod N) + 1
 		{GetElementInList Result I}
 	end
+
 	%Get the I th element of L
 	fun{GetElementInList L I}
 		case L of H|T then
@@ -65,8 +65,7 @@ define
 	 end %case
 	 Direction
 	end %fun
-
-	%TODO
+	
 	fun {GetNewPosition Direction CurrentPosition}
 		Position
 		in
@@ -87,7 +86,7 @@ define
 	%Create a new state based on the previous one
 	%Param Value = the attribute to update with the value of Result
 	fun{StateModification State Value Result} NewState in
-		NewState = state(idPlayer:State.idPlayer currentPosition:_ counterMine:_ counterMissile:_ couterDrone:_ counterSonar:_)
+		NewState = state(idPlayer:State.idPlayer currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar:0)
 
 		if Value == 'position' then
 			NewState.currentPosition = Result
@@ -127,25 +126,23 @@ define
 		NewState
 	end
 
-	%TODO
-	fun{GenerateItem} List Value in
+	fun{GenerateItem State} List Value Charged in
 		List = [mine missile sonar drone]
 		Value = {GetRandomElem List 4}
-		Value
-	end
 
-	%TODO
-	fun{CheckCounterItemUpdated State Item} ReturnValue in
-		case Item of mine then
-		if(State.counterMine == Input.mine) then ReturnValue = mine end
-		[] missile then
-		if(State.counterMissile == Input.missile) then ReturnValue = missile end
-		[] sonar then
-		if(State.counterSonar == Input.sonar) then ReturnValue = sonar end
-		[] drone then
-		if(State.counterDrone == Input.drone) then ReturnValue = drone end
+		case Value of mine then
+				if(State.counterMine == Input.mine) then Charged = true end
+			[] missile then
+				if(State.counterMissile == Input.missile) then Charged = true end
+			[] sonar then
+				if(State.counterSonar == Input.sonar) then Charged = true end
+			[] drone then
+				if(State.counterDrone == Input.drone) then Charged = true end
 		end
-		ReturnValue
+
+		if Charged == nil then Charged = false end
+
+		tuple(item:Value isCharged:Charged)
 	end
 
 	%TODO
@@ -195,14 +192,14 @@ define
 in
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  fun{StartPlayer Color ID}
+fun{StartPlayer Color ID}
   Stream
 	Port
 	State
 	in
         {NewPort Stream Port}
         thread
-				State=state(idPlayer:id(id:ID color:Color name:'Player001') currentPosition:_ counterMine:0 counterMissile:0 couterDrone:0 counterSonar: 0)
+				State=state(idPlayer:id(id:ID color:Color name:'Player001') currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar: 0)
         {TreatStream Stream  State}
         end
         Port
@@ -234,22 +231,25 @@ end %fun
 
 			[] chargeItem(?ID ?KindItem)|T then NewItem NewState in
 				ID = State.idPlayer
-				NewItem = {GenerateItem}
-				NewState = {StateModification State 'chargeItem' NewItem}
-				KindItem = {CheckCounterItemUpdated State NewItem}
+				NewItem = {GenerateItem State}
+				NewState = {StateModification State 'chargeItem' NewItem.item}
+
+				if(NewItem.isCharged) then
+					KindItem = NewItem.item
+				end
 				{TreatStream T NewState}
 
 			[]fireItem(?ID ?KindItem)|T then ItemReady NewState Position in
-				ID = State.idPlayer
+				/*ID = State.idPlayer
 				ItemReady = {GetItemReady State} %Méthode à créer !
-				%		if ItemReady == nil then
-							%ne rien faire
-				%		else
-				%			NewState = {StateModification State 'fireItem' ItemReady}
-				%			KindItem = {PositionToFire ItemReady State.currentPosition}
-				%		end
-				%		KindItem=mine(pt:(x:1 y:1))
-				%		{TreatStream T NewState}
+				if ItemReady == nil then
+					%ne rien faire
+				else
+					NewState = {StateModification State 'fireItem' ItemReady}
+					KindItem = {PositionToFire ItemReady State.currentPosition}
+				end
+				KindItem=mine(pt:(x:1 y:1))*/
+				{TreatStream T NewState}
 
 			[]fireMine(?ID ?Mine)|T then NewState in
 				{TreatStream T NewState}

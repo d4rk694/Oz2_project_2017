@@ -35,6 +35,33 @@ define
   end
 
 
+  proc{StartTurnByTurn} %State foreach player State(1:(Surfaceturn:0 lives:4) 2:  ... Input.nbPlayers)
+    %foreach players
+      %check if submarine is under the surface
+        %if first round or previous rounds the player is at the surface => send Dive
+
+        %Ask direction to move
+        %if direction !surface
+          %broadcast the direction to everyone
+
+          %charge an item
+          %if item totaly charged
+            %broadcast the item to everyone
+
+          %Fire an item
+          %if it has fired an item
+            %broadcast to everyones
+
+          %Blow a mine
+          %if the mine has blowned
+            %broadcast to everyone
+        %else (at surface)
+          %broadcast that player is at the surface and stay the number of Input.TurnSurface before playing again
+
+      %else at the surface
+  end
+
+
 in
   Round = 1
 	PortWindow = {GUI.portWindow}
