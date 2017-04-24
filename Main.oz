@@ -31,8 +31,12 @@ define
 
   proc{MovePlayers Idnum} ID Position Direction in
       {Send Players.Idnum move(ID Position Direction)}
-      {System.showInfo Idnum #' moved to '#Direction}
+
       {Send PortWindow movePlayer(ID Position)}
+      if(Direction == surface) then
+        {Send PortWindow surface(ID)}
+
+      end
   end
 
 

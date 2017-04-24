@@ -9,7 +9,7 @@ export
 define
 
 	fun{GenerateInitialState}
-		state(idPlayer:_ currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar: 0 map:_)
+		state(idPlayer:_ currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar: 0 path:_)
 	end
 	%Get a random element From Result, where N is Max index to choose
 	fun{GetRandomElem Result N} I in
@@ -30,6 +30,20 @@ define
    	end
 	end
 
+	fun{FindElement L E} Result in
+		case L of H|T then
+			if (H == E) then
+
+				Result = H
+			else
+				Result = {FindElement T E}
+			end
+		[] nil then
+			Result = nil
+		end
+		Result
+	end
+
 
 	fun{CanMoveTo X Y Map} List Point in
 		List={GetElementInList Map X}
@@ -41,8 +55,20 @@ define
 		end
 	end
 
+	fun{InitPos Map} P Value in
+		P = pt(x:({OS.rand}mod 10)+1 y:({OS.rand}mod 10)+1)
+		if({CanMoveTo P.x P.y Map} == no) then
+			Value = {InitPos Map}
+		else
+			Value = P
+		end
+
+		Value
+	end
+
 	%TODO Check Path
-	fun{GenerateDirection CurrentPosition Map}
+	fun{GenerateDirection State Map}
+		P
  		Move
  		Direction
 		ListDirection
@@ -51,40 +77,46 @@ define
 		Move = {GetRandomElem ListDirection 5}
 
 		case Move of north then
-			if(CurrentPosition.x-1 == 0) then
-				Direction = {GenerateDirection CurrentPosition Map}
-			elseif ({CanMoveTo CurrentPosition.x-1 CurrentPosition.y Map} == no) then
-				Direction = {GenerateDirection CurrentPosition Map}
-			else
+			P = pt(x:State.currentPosition.x-1 y:State.currentPosition.y)
+						if (P.x == 0) then
+				Direction = {GenerateDirection State Map}
+				elseif ({CanMoveTo P.x P.y Map} == no) then
+					Direction = {GenerateDirection State Map}
+				elseif ({FindElement State.path P} == P) then
+
+					Direction = {GenerateDirection State Map}
+				else
 				Direction = north
 			end
 		[] surface then
 			 Direction = surface
-	 [] east then
-			if(CurrentPosition.y+1 == (Input.nColumn)+1) then
-				Direction = {GenerateDirection CurrentPosition Map}
-			elseif ({CanMoveTo CurrentPosition.x CurrentPosition.y+1 Map} == no) then
-				Direction = {GenerateDirection CurrentPosition Map}
+ 	 	[] east then
+	 		P = pt(x:State.currentPosition.x y:State.currentPosition.y+1)
+			if(P.y == (Input.nColumn)+1) then
+				Direction = {GenerateDirection State Map}
+			elseif ({CanMoveTo P.x P.y Map} == no) then
+				Direction = {GenerateDirection State Map}
 			else
 				Direction = east
 			end
-	 [] south then
-			if(CurrentPosition.x+1 == (Input.nRow)+1) then
-				Direction =  {GenerateDirection CurrentPosition Map}
-			elseif ({CanMoveTo CurrentPosition.x+1 CurrentPosition.y Map} == no) then
-				Direction = {GenerateDirection CurrentPosition Map}
+		[] south then
+	 		P = pt(x:State.currentPosition.x+1 y:State.currentPosition.y)
+			if(P.x == (Input.nRow)+1) then
+				Direction =  {GenerateDirection State Map}
+			elseif ({CanMoveTo P.x P.y Map} == no) then
+				Direction = {GenerateDirection State Map}
 			else
 				Direction = south
 			end
-	 [] west then
-			if(CurrentPosition.y-1 == 0) then
-				Direction = {GenerateDirection CurrentPosition Map}
-			elseif ({CanMoveTo CurrentPosition.x CurrentPosition.y-1 Map} == no) then
-				Direction = {GenerateDirection CurrentPosition Map}
+		[] west then
+	 		P = pt(x:State.currentPosition.x y:State.currentPosition.y-1)
+			if(P.y == 0) then
+				Direction = {GenerateDirection State Map}
+			elseif ({CanMoveTo P.x P.y Map} == no) then
+				Direction = {GenerateDirection State Map}
 			else
 				Direction = west
 			end %else
-
 	 end %case
 	 Direction
 	end %fun
@@ -115,8 +147,10 @@ define
 
 		if Value == 'position' then
 			NewState.currentPosition = Result
+			NewState.path = Result|State.path
 		else
 			NewState.currentPosition = State.currentPosition
+			NewState.path = State.path
 		end
 
 		if Value == 'chargeItem' then
@@ -240,18 +274,18 @@ end %fun
 
 	    [] initPosition(?ID ?Position)|T then NewState in
 				ID = State.idPlayer
-				State.currentPosition = pt(x:({OS.rand}mod 10)+1 y:({OS.rand}mod 10)+1)
+				State.currentPosition = {InitPos Input.map}
 				Position = State.currentPosition
-				%TODO Change the position on the state.map
+				State.path = Position|_
+
 		    {TreatStream T State}
 
 			[]move(?ID ?Position ?Direction)|T then NewState Pos in
 				ID = State.idPlayer
-				Direction = {GenerateDirection State.currentPosition Input.map}
+				Direction = {GenerateDirection State Input.map}
 				Pos = {GetNewPosition Direction State.currentPosition}
 				NewState = {StateModification State position Pos}
 				Position = NewState.currentPosition
-				%TODO Change the position on the state.map
 				{TreatStream T NewState}
 
 			%TODO dive in state
