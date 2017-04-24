@@ -26,7 +26,18 @@ define
    	end
 	end
 
-%TODO Check Island
+
+	fun{IsIsland X Y} List Point in
+		List={GetElementInList Input.map X}
+		Point={GetElementInList List Y}
+		case Point of 1 then
+			island
+		[] 0 then
+			sea
+		end
+	end
+
+%TODO Check Path
 	fun{GenerateDirection CurrentPosition}
  		Move
  		Direction
@@ -36,7 +47,9 @@ define
 		Move = {GetRandomElem ListDirection 5}
 
 		case Move of north then
-			if(CurrentPosition.x-1 == 0  ) then
+			if(CurrentPosition.x-1 == 0) then
+				Direction = {GenerateDirection CurrentPosition}
+			elseif ({IsIsland CurrentPosition.x-1 CurrentPosition.y} == island) then
 				Direction = {GenerateDirection CurrentPosition}
 			else
 				Direction = north
@@ -46,17 +59,23 @@ define
 	 [] east then
 			if(CurrentPosition.y+1 == (Input.nColumn)+1) then
 				Direction = {GenerateDirection CurrentPosition}
+			elseif ({IsIsland CurrentPosition.x CurrentPosition.y+1} == island) then
+				Direction = {GenerateDirection CurrentPosition}
 			else
 				Direction = east
 			end
 	 [] south then
 			if(CurrentPosition.x+1 == (Input.nRow)+1) then
 				Direction =  {GenerateDirection CurrentPosition}
+			elseif ({IsIsland CurrentPosition.x+1 CurrentPosition.y} == island) then
+				Direction = {GenerateDirection CurrentPosition}
 			else
 				Direction = south
 			end
 	 [] west then
 			if(CurrentPosition.y-1 == 0) then
+				Direction = {GenerateDirection CurrentPosition}
+			elseif ({IsIsland CurrentPosition.x CurrentPosition.y-1} == island) then
 				Direction = {GenerateDirection CurrentPosition}
 			else
 				Direction = west
@@ -65,7 +84,7 @@ define
 	 end %case
 	 Direction
 	end %fun
-	
+
 	fun {GetNewPosition Direction CurrentPosition}
 		Position
 		in
