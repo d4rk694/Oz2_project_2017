@@ -7,6 +7,10 @@ import
 export
    portPlayer:StartPlayer
 define
+
+	fun{GenerateInitialState}
+		state(idPlayer:_ currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar: 0 map:_)
+	end
 	%Get a random element From Result, where N is Max index to choose
 	fun{GetRandomElem Result N} I in
 		I = ({OS.rand} mod N) + 1
@@ -27,18 +31,18 @@ define
 	end
 
 
-	fun{IsIsland X Y} List Point in
-		List={GetElementInList Input.map X}
+	fun{CanMoveTo X Y Map} List Point in
+		List={GetElementInList Map X}
 		Point={GetElementInList List Y}
 		case Point of 1 then
-			island
+			no
 		[] 0 then
-			sea
+			yes
 		end
 	end
 
-%TODO Check Path
-	fun{GenerateDirection CurrentPosition}
+	%TODO Check Path
+	fun{GenerateDirection CurrentPosition Map}
  		Move
  		Direction
 		ListDirection
@@ -48,9 +52,9 @@ define
 
 		case Move of north then
 			if(CurrentPosition.x-1 == 0) then
-				Direction = {GenerateDirection CurrentPosition}
-			elseif ({IsIsland CurrentPosition.x-1 CurrentPosition.y} == island) then
-				Direction = {GenerateDirection CurrentPosition}
+				Direction = {GenerateDirection CurrentPosition Map}
+			elseif ({CanMoveTo CurrentPosition.x-1 CurrentPosition.y Map} == no) then
+				Direction = {GenerateDirection CurrentPosition Map}
 			else
 				Direction = north
 			end
@@ -58,25 +62,25 @@ define
 			 Direction = surface
 	 [] east then
 			if(CurrentPosition.y+1 == (Input.nColumn)+1) then
-				Direction = {GenerateDirection CurrentPosition}
-			elseif ({IsIsland CurrentPosition.x CurrentPosition.y+1} == island) then
-				Direction = {GenerateDirection CurrentPosition}
+				Direction = {GenerateDirection CurrentPosition Map}
+			elseif ({CanMoveTo CurrentPosition.x CurrentPosition.y+1 Map} == no) then
+				Direction = {GenerateDirection CurrentPosition Map}
 			else
 				Direction = east
 			end
 	 [] south then
 			if(CurrentPosition.x+1 == (Input.nRow)+1) then
-				Direction =  {GenerateDirection CurrentPosition}
-			elseif ({IsIsland CurrentPosition.x+1 CurrentPosition.y} == island) then
-				Direction = {GenerateDirection CurrentPosition}
+				Direction =  {GenerateDirection CurrentPosition Map}
+			elseif ({CanMoveTo CurrentPosition.x+1 CurrentPosition.y Map} == no) then
+				Direction = {GenerateDirection CurrentPosition Map}
 			else
 				Direction = south
 			end
 	 [] west then
 			if(CurrentPosition.y-1 == 0) then
-				Direction = {GenerateDirection CurrentPosition}
-			elseif ({IsIsland CurrentPosition.x CurrentPosition.y-1} == island) then
-				Direction = {GenerateDirection CurrentPosition}
+				Direction = {GenerateDirection CurrentPosition Map}
+			elseif ({CanMoveTo CurrentPosition.x CurrentPosition.y-1 Map} == no) then
+				Direction = {GenerateDirection CurrentPosition Map}
 			else
 				Direction = west
 			end %else
@@ -105,7 +109,9 @@ define
 	%Create a new state based on the previous one
 	%Param Value = the attribute to update with the value of Result
 	fun{StateModification State Value Result} NewState in
-		NewState = state(idPlayer:State.idPlayer currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar:0)
+		NewState = {GenerateInitialState}
+
+		NewState.idPlayer = State.idPlayer
 
 		if Value == 'position' then
 			NewState.currentPosition = Result
@@ -145,6 +151,7 @@ define
 		NewState
 	end
 
+	%TODO test with value +1
 	fun{GenerateItem State} List Value Charged in
 		List = [mine missile sonar drone]
 		Value = {GetRandomElem List 4}
@@ -218,7 +225,8 @@ fun{StartPlayer Color ID}
 	in
         {NewPort Stream Port}
         thread
-				State=state(idPlayer:id(id:ID color:Color name:'Player001') currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar: 0)
+				State = {GenerateInitialState}
+				State.idPlayer = id(id:ID color:Color name:'Player'#ID)
         {TreatStream Stream  State}
         end
         Port
@@ -234,20 +242,24 @@ end %fun
 				ID = State.idPlayer
 				State.currentPosition = pt(x:({OS.rand}mod 10)+1 y:({OS.rand}mod 10)+1)
 				Position = State.currentPosition
+				%TODO Change the position on the state.map
 		    {TreatStream T State}
 
 			[]move(?ID ?Position ?Direction)|T then NewState Pos in
 				ID = State.idPlayer
-				Direction = {GenerateDirection State.currentPosition}
+				Direction = {GenerateDirection State.currentPosition Input.map}
 				Pos = {GetNewPosition Direction State.currentPosition}
 				NewState = {StateModification State position Pos}
 				Position = NewState.currentPosition
+				%TODO Change the position on the state.map
 				{TreatStream T NewState}
 
+			%TODO dive in state
 			[] dive|T then NewState in
 				Dive = true
 				{TreatStream T NewState}
 
+			%TODO update the state.item
 			[] chargeItem(?ID ?KindItem)|T then NewItem NewState in
 				ID = State.idPlayer
 				NewItem = {GenerateItem State}

@@ -36,12 +36,12 @@ define
   end
 
 
-  proc{StartTurnByTurn State} %State foreach player State(1:(Surfaceturn:0 lives:4) 2:  ... Input.nbPlayers)
+  proc{StartTurnByTurn State} %State foreach player State(1:(Surfaceturn:0 lives:4 map:[[1 1 0 2 ]]) 2:  ... Input.nbPlayers)
   %only for debug
-  for I in 1..10 do
+  for I in 1..25 do
     %foreach players
     for J in 1..Input.nbPlayer do
-      {Delay 500}
+      {Delay Input.thinkMin}
       {System.showInfo 'turn '# I #'for player '#J}
       {MovePlayers J}
 
@@ -79,11 +79,10 @@ in
   Round = 1
 	PortWindow = {GUI.portWindow}
 
-  {System.showInfo 'Hello world'}
-
 	{Send PortWindow buildWindow}
 
 	Players={MakeTuple players Input.nbPlayer}
+
 	for I in 1..Input.nbPlayer do
 		Players.I={PlayerManager.playerGenerator {GetElementInList Input.players I} {GetElementInList Input.colors I} I}
 	end
@@ -91,6 +90,7 @@ in
   for I in 1..Input.nbPlayer do
     {InitPositionPlayers I}
   end
+
   if(Input.isTurnByTurn) then
     {StartTurnByTurn nil}
   else
