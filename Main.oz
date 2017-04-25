@@ -35,18 +35,15 @@ define
       {Send PortWindow movePlayer(ID Position)}
       if(Direction == surface) then
         {Send PortWindow surface(ID)}
-
       end
   end
 
 
   proc{StartTurnByTurn State} %State foreach player State(1:(Surfaceturn:0 lives:4 map:[[1 1 0 2 ]]) 2:  ... Input.nbPlayers)
-  %only for debug
-  for I in 1..25 do
     %foreach players
     for J in 1..Input.nbPlayer do
       {Delay Input.thinkMin}
-      {System.showInfo 'turn '# I #'for player '#J}
+      {System.showInfo 'turn for player '#J}
       {MovePlayers J}
 
       %check if submarine is under the surface
@@ -73,9 +70,7 @@ define
       %else at the surface
 
     end %end foreach player
-  end %end for 1..10
-
-      skip
+    {StartTurnByTurn State}
   end
 
 

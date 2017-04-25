@@ -9,7 +9,7 @@ export
 define
 
 	fun{GenerateInitialState}
-		state(idPlayer:_ currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar: 0 path:_)
+		state(idPlayer:_ currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar: 0 path:_|_)
 	end
 	%Get a random element From Result, where N is Max index to choose
 	fun{GetRandomElem Result N} I in
@@ -30,19 +30,18 @@ define
    	end
 	end
 
-	fun{FindElement L E} Result in
-		case L of H|T then
-			if (H == E) then
-
-				Result = H
-			else
-				Result = {FindElement T E}
-			end
-		[] nil then
-			Result = nil
-		end
-		Result
-	end
+	fun{FindPointInList L I}
+		{System.showInfo 'Try To find : pt(x:'#I.x#' y:'#I.y#')'}
+   case L of H|T then
+      if I == H then
+	 			H
+      else
+	 			{FindPointInList T I}
+      end
+   [] nil then
+      nil
+   end
+end
 
 
 	fun{CanMoveTo X Y Map} List Point in
@@ -75,15 +74,14 @@ define
 		in
 		ListDirection = [north south east west surface]
 		Move = {GetRandomElem ListDirection 5}
-
+		{System.showInfo 'GenerateDirection '#State.idPlayer.name}
 		case Move of north then
 			P = pt(x:State.currentPosition.x-1 y:State.currentPosition.y)
 						if (P.x == 0) then
 				Direction = {GenerateDirection State Map}
 				elseif ({CanMoveTo P.x P.y Map} == no) then
 					Direction = {GenerateDirection State Map}
-				elseif ({FindElement State.path P} == P) then
-
+				elseif ({FindPointInList State.path P} == P) then
 					Direction = {GenerateDirection State Map}
 				else
 				Direction = north
@@ -96,6 +94,8 @@ define
 				Direction = {GenerateDirection State Map}
 			elseif ({CanMoveTo P.x P.y Map} == no) then
 				Direction = {GenerateDirection State Map}
+			elseif ({FindPointInList State.path P} == P) then
+				Direction = {GenerateDirection State Map}
 			else
 				Direction = east
 			end
@@ -105,6 +105,8 @@ define
 				Direction =  {GenerateDirection State Map}
 			elseif ({CanMoveTo P.x P.y Map} == no) then
 				Direction = {GenerateDirection State Map}
+			elseif ({FindPointInList State.path P} == P) then
+				Direction = {GenerateDirection State Map}
 			else
 				Direction = south
 			end
@@ -113,6 +115,8 @@ define
 			if(P.y == 0) then
 				Direction = {GenerateDirection State Map}
 			elseif ({CanMoveTo P.x P.y Map} == no) then
+				Direction = {GenerateDirection State Map}
+			elseif ({FindPointInList State.path P} == P) then
 				Direction = {GenerateDirection State Map}
 			else
 				Direction = west
