@@ -27,33 +27,20 @@ define
     info(turnLeftSurface:_)
   end
 
-  fun{StateModification State Id Value Result} NewState in
+  fun{StateModification State Value Result} NewStatePlayer in
 
 
-    NewState={MakeTuple statePlayers Input.nbPlayer}
     {System.showInfo 'Creating state'}
-    for I in 1..Input.nbPlayer do
+    NewStatePlayer={GenerateInitialState}
 
-      if I == Id then
-        NewState.I={GenerateInitialState}
-        {System.showInfo '   Updating for player'#I}
-        if Value == turnLeftSurface then
-          {System.showInfo '   Updating for player'#I#'.'#State.I.turnLeftSurface}
-          NewState.I.turnLeftSurface = Result
-          {System.showInfo '   Updating for player'#I#'.'#NewState.I.turnLeftSurface}
-        else
-          {System.showInfo '   copying for player'#I#' turnLeftSurface'}
-          NewState.I.turnLeftSurface = State.I.turnLeftSurface
-        end
-      else
-        {System.showInfo '   copying for player'#I}
-
-        NewState.I = State.I
-      end
+    if Value == turnLeftSurface then
+      NewStatePlayer.turnLeftSurface = Result
+    else
+      NewStatePlayer.turnLeftSurface = State.turnLeftSurface
     end
-    {System.showInfo 'NewState created'}
 
-    NewState
+
+    NewStatePlayer
   end
 
   proc{InitPositionPlayers Idnum} ID Position in
@@ -94,6 +81,7 @@ define
 
   proc{StartTurnByTurn State} NewState  in %State foreach player State(1:(Surfaceturn:0 lives:4 map:[[1 1 0 2 ]]) 2:  ... Input.nbPlayers)
     %foreach players
+    NewState = {MakeTuple statePlayers Input.nbPlayer}
     for J in 1..Input.nbPlayer do
       local TurnToSurface in
         {Delay Input.thinkMin}
@@ -112,7 +100,7 @@ define
           if {MovePlayers J} then
             % 4. TODO Change in the state the value of the turnLeftSurface
             {System.showInfo 'Surface for '#Input.turnSurface #' lap'}
-            TurnToSurface=Input.turnSurface
+            TurnToSurface=Input.turnSurface - 1
             %We go derectly to 9. by skiping the else statement
           else
             {System.showInfo '      Player'#J #' : Continue to play after moving'}
@@ -129,12 +117,12 @@ define
         end
 
         % 9. Ending turn by decreasing the turnLeftSurface if > 0
-        if TurnToSurface > 0 then
+        if State.J.turnLeftSurface > 0 then
           {System.showInfo 'Change State to skip some turn'}
-          NewState={StateModification State J turnLeftSurface (TurnToSurface - 1)}
+          NewState.J={StateModification State.J turnLeftSurface (State.J.turnLeftSurface - 1)}
         else
           {System.showInfo 'Create new state'}
-          NewState={StateModification State J turnLeftSurface 0}
+          NewState.J={StateModification State.J turnLeftSurface TurnToSurface}
         end
 
         {System.showInfo '   || turnLeftSurface : '# NewState.J.turnLeftSurface}
