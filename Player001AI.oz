@@ -9,7 +9,7 @@ export
 define
 
 	fun{GenerateInitialState}
-		state(idPlayer:_ currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar: 0 path:_)
+		state(idPlayer:_ currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar: 0 path:_ underSurface:false)
 	end
 	%Get a random element From Result, where N is Max index to choose
 	fun{GetRandomElem Result N} I in
@@ -191,6 +191,12 @@ define
 			NewState.counterSonar = State.counterSonar
 			NewState.counterDrone = State.counterDrone
 		end
+
+		if Result == dive then
+			NewState.underSurface = Result
+		else
+			NewState.underSurface = State.underSurface
+		end
 		NewState
 	end
 
@@ -308,7 +314,7 @@ end %fun
 			[] dive|T then NewState in
 				{System.showInfo 'dive'}
 				Dive = true
-				NewState = {StateModification State nil nil}
+				NewState = {StateModification State dive true}
 				{TreatStream T NewState}
 
 			%TODO update the state.item
