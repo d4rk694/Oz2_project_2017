@@ -9,7 +9,7 @@ export
 define
 
 	fun{GenerateInitialState}
-		state(idPlayer:_ currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar: 0 path:nil|nil)
+		state(idPlayer:_ currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar: 0 path:_)
 	end
 	%Get a random element From Result, where N is Max index to choose
 	fun{GetRandomElem Result N} I in
@@ -31,27 +31,16 @@ define
 	end
 
 	fun{FindPointInList L I}
-		{System.showInfo 'TRY TO FIND'}
-		{System.showInfo 'VVV'}
-
 			case L of nil then
- 				{System.showInfo 'Not FOUND'}
  				no
-
 			[] H|T then
 				if I == H then
-					{System.showInfo 'Fount '}
 					yes
 				else
-					{System.showInfo 'Try more in depth'}
 					{FindPointInList T I}
 				end
-		 end
-
-
-
-end
-
+		 	end
+	end
 
 	fun{CanMoveTo X Y Map} List Point in
 		List={GetElementInList Map X}
@@ -81,9 +70,10 @@ end
  		Direction
 		ListDirection
 		in
-		ListDirection = [north south east west surface]
-		Move = {GetRandomElem ListDirection 5}
-		{System.showInfo 'GenerateDirection '#State.idPlayer.name}
+		%Big list to have only 11% chance to go on the surface
+		ListDirection = [north south east west surface north south east west north south east west north south east west surface]
+		Move = {GetRandomElem ListDirection 18}
+		{System.showInfo '  |   GenerateDirection '#State.idPlayer.name}
 		case Move of north then
 			P = pt(x:State.currentPosition.x-1 y:State.currentPosition.y)
 						if (P.x == 0) then
@@ -158,12 +148,18 @@ end
 
 		NewState.idPlayer = State.idPlayer
 
-		if Value == 'position' then
+		if Value == 'initPath' then
+			{System.showInfo 'initPath'}
 			NewState.currentPosition = Result
-			NewState.path = Result|State.path
+			NewState.path = Result|nil
 		else
-			NewState.currentPosition = State.currentPosition
-			NewState.path = State.path
+			if Value == 'position' then
+				NewState.currentPosition = Result
+				NewState.path = Result|State.path
+			else
+				NewState.currentPosition = State.currentPosition
+				NewState.path = State.path
+			end
 		end
 
 		if Value == 'chargeItem' then
@@ -286,35 +282,45 @@ end %fun
 	    of nil then skip
 
 	    [] initPosition(?ID ?Position)|T then NewState in
+				{System.showInfo 'initPosition'}
 				ID = State.idPlayer
 				State.currentPosition = {InitPos Input.map}
 				Position = State.currentPosition
-				NewState = {StateModification State position Position}
+				NewState = {StateModification State initPath Position}
 
-		    {TreatStream T State}
+		    {TreatStream T NewState}
 
 			[]move(?ID ?Position ?Direction)|T then NewState Pos in
+				{System.showInfo 'move'}
+
 				ID = State.idPlayer
 				Direction = {GenerateDirection State Input.map}
 				Pos = {GetNewPosition Direction State.currentPosition}
-				NewState = {StateModification State position Pos}
+				if Direction == surface then
+					NewState = {StateModification State initPath Pos}
+				else
+					NewState = {StateModification State position Pos}
+				end
 				Position = NewState.currentPosition
 				{TreatStream T NewState}
 
 			%TODO dive in state
 			[] dive|T then NewState in
+				{System.showInfo 'dive'}
 				Dive = true
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			%TODO update the state.item
 			[] chargeItem(?ID ?KindItem)|T then NewItem NewState in
-				ID = State.idPlayer
+				/*ID = State.idPlayer
 				NewItem = {GenerateItem State}
 				NewState = {StateModification State 'chargeItem' NewItem.item}
 
 				if(NewItem.isCharged) then
 					KindItem = NewItem.item
-				end
+				end*/
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]fireItem(?ID ?KindItem)|T then ItemReady NewState Position in
@@ -327,51 +333,67 @@ end %fun
 					KindItem = {PositionToFire ItemReady State.currentPosition}
 				end
 				KindItem=mine(pt:(x:1 y:1))*/
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]fireMine(?ID ?Mine)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]isSurface(?ID ?Answer)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayMove(ID Direction)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]saySurface(ID)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayCharge(ID KindItem)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayMinePlaced(ID)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayMissileExplode(ID Position ?Message)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayMineExplode(ID Position ?Message)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayPassingDrone(Drone ?ID ?Answer)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayAnswerDrone(Drone ID Answer)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayPassingSonar(?ID ?Answer)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayAnswerSonar(ID Answer)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayDeath(ID)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayDamageTaken(ID Damage LifeLeft)|T then NewState in
+				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[] _|T then NewState in
+				NewState = {StateModification State nil nil}
 	    	{TreatStream T NewState}
 		end %case
 	end %proc
