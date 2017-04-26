@@ -49,15 +49,15 @@ define
   end
 
   fun{MovePlayers Idnum} ID Position Direction RetVal in
-      {System.showInfo '     Player'#Idnum #' : Moving'}
+      %{System.showInfo '     Player'#Idnum #' : Moving'}
       {Send Players.Idnum move(ID Position Direction)}
       {Send PortWindow movePlayer(ID Position)}
       if(Direction == surface) then
-        {System.showInfo '     Player'#Idnum #' : Moved to surface'}
+      %  {System.showInfo '     Player'#Idnum #' : Moved to surface'}
         {Send PortWindow surface(ID)}
         RetVal = true
       else
-      {System.showInfo '     Player'#Idnum #' : Moved to '#Direction}
+      %{System.showInfo '     Player'#Idnum #' : Moved to '#Direction}
         RetVal = false
       end
       %TODO broadcast to all players
@@ -66,13 +66,28 @@ define
 
   %TODO
   proc{ChargeItem Idnum} ID KindItem in
+    %{System.showInfo 'Ask ChargeItem'}
     {Send Players.Idnum chargeItem(?ID ?KindItem)}
+    thread
+      %TODO broadcast
+      {Wait KindItem}
+    %  {System.showInfo '###'#KindItem}
+    end
     %If KindItem CHarged => broadcast
   end
 
   %TODO
-  proc{FireItem Idnum} ID KindItem in
-    {Send Players.Idnum fireItem(?ID ?KindItem)}
+  proc{FireItem Idnum} ID FireItem in
+    {System.showInfo 'Ask FireItem'}
+    {Send Players.Idnum fireItem(?ID ?FireItem)}
+    {System.showInfo 'Asked FireItem!'}
+
+    thread
+      %TODO broadcast
+      {Wait FireItem}
+
+      {System.showInfo '### FIRED : MOTHAFUCKER!!!!!!'}
+    end
     %If KindItem binded => broadcast
   end
 
@@ -80,7 +95,7 @@ define
     skip
   end
 
-  proc{StartTurnByTurn State} NewState  in %State foreach player State(1:(Surfaceturn:0 lives:4 map:[[1 1 0 2 ]]) 2:  ... Input.nbPlayers)
+  proc{StartTurnByTurn State} NewState  in %State foreach player State(1:(Surfaceturn:0 )
     %foreach players
     NewState = {MakeTuple statePlayers Input.nbPlayer}
     for J in 1..Input.nbPlayer do
@@ -94,7 +109,7 @@ define
 
         % 1.
         if State.J.turnLeftSurface == 0 then
-          {System.showInfo '   Player'#J #' : He can play'}
+    %      {System.showInfo '   Player'#J #' : He can play'}
           % 2.
           {Send Players.J dive}
           % 3. The broadcast (5.) is done in the proc MovePlayers
@@ -121,12 +136,12 @@ define
         if State.J.turnLeftSurface > 0 then
           {System.showInfo 'Change State to skip some turn'}
           NewState.J={StateModification State.J turnLeftSurface (State.J.turnLeftSurface - 1)}
-        else
+      else
           {System.showInfo 'Create new state'}
           NewState.J={StateModification State.J turnLeftSurface TurnToSurface}
         end
 
-        {System.showInfo '   || turnLeftSurface : '# NewState.J.turnLeftSurface}
+    %    {System.showInfo '   || turnLeftSurface : '# NewState.J.turnLeftSurface}
       end %end local
     end %end foreach player
 
@@ -146,7 +161,7 @@ in
 		Players.I={PlayerManager.playerGenerator {GetElementInList Input.players I} {GetElementInList Input.colors I} I}
     PlayersState.I={GenerateInitialState}
     PlayersState.I.turnLeftSurface = 0
-    {System.showInfo 'TurnSurface for players '# PlayersState.I.turnLeftSurface}
+  %  {System.showInfo 'TurnSurface for players '# PlayersState.I.turnLeftSurface}
 	end
 
   for I in 1..Input.nbPlayer do

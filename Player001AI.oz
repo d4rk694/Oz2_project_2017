@@ -9,7 +9,7 @@ export
 define
 
 	fun{GenerateInitialState}
-		state(idPlayer:_ currentPosition:_ counterMine:0 counterMissile:0 counterDrone:0 counterSonar: 0 path:_ underSurface:false)
+		state(idPlayer:_ currentPosition:_ counterMine:_ counterMissile:_ counterDrone:_ counterSonar: _ path:_ underSurface:false)
 	end
 	%Get a random element From Result, where N is Max index to choose
 	fun{GetRandomElem Result N} I in
@@ -73,7 +73,7 @@ define
 		%Big list to have only 11% chance to go on the surface
 		ListDirection = [north south east west surface north south east west north south east west north south east west surface]
 		Move = {GetRandomElem ListDirection 18}
-		{System.showInfo '  |   GenerateDirection '#State.idPlayer.name}
+		%		{System.showInfo '  |   GenerateDirection '#State.idPlayer.name}
 		case Move of north then
 			P = pt(x:State.currentPosition.x-1 y:State.currentPosition.y)
 				if (P.x == 0 orelse {CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
@@ -145,7 +145,6 @@ define
 				NewState.path = State.path
 			end
 		end
-
 		if Value == 'chargeItem' then
 			if Result == mine then
 				NewState.counterMine = State.counterMine+1
@@ -160,9 +159,9 @@ define
 			end
 
 			if Result == drone then
-				NewState.couterDrone = State.couterDrone+1
+				NewState.counterDrone = State.counterDrone+1
 			else
-				NewState.couterDrone = State.couterDrone
+				NewState.counterDrone = State.counterDrone
 			end
 			if Result == sonar then
 				NewState.counterSonar = State.counterSonar+1
@@ -170,17 +169,47 @@ define
 				NewState.counterSonar = State.counterSonar
 			end
 		else
-			NewState.counterMine = State.counterMine
-			NewState.counterMissile = State.counterMissile
-			NewState.counterSonar = State.counterSonar
-			NewState.counterDrone = State.counterDrone
+			if Value == 'removeItem' then
+				if Result == mine then
+					NewState.counterMine = State.counterMine-Input.mine
+					{System.showInfo ' Counter : '#NewState.counterMine}
+
+				else
+					NewState.counterMine = State.counterMine
+				end
+
+				if Result == missile then
+					NewState.counterMissile = State.counterMissile-Input.missile
+					{System.showInfo ' Counter : '#NewState.counterMissile}
+				else
+					NewState.counterMissile = State.counterMissile
+				end
+
+				if Result == drone then
+					NewState.counterDrone = State.counterDrone-Input.drone
+					{System.showInfo ' Counter : '#NewState.counterDrone}
+
+				else
+					NewState.counterDrone = State.counterDrone
+				end
+				if Result == sonar then
+					NewState.counterSonar = State.counterSonar-Input.sonar
+					{System.showInfo ' Counter : '#NewState.counterSonar}
+
+				else
+					NewState.counterSonar = State.counterSonar
+				end
+			else
+
+				NewState.counterMine = State.counterMine
+				NewState.counterMissile = State.counterMissile
+				NewState.counterSonar = State.counterSonar
+				NewState.counterDrone = State.counterDrone
+			end
 		end
 
-		if Result == dive then
-			NewState.underSurface = Result
-		else
-			NewState.underSurface = State.underSurface
-		end
+
+
 		NewState
 	end
 
@@ -190,53 +219,79 @@ define
 		Value = {GetRandomElem List 4}
 
 		case Value of mine then
-				if(State.counterMine == Input.mine) then Charged = true end
+				if(State.counterMine+1 >= Input.mine) then Charged = true end
 			[] missile then
-				if(State.counterMissile == Input.missile) then Charged = true end
+				if(State.counterMissile+1 >= Input.missile) then Charged = true end
 			[] sonar then
-				if(State.counterSonar == Input.sonar) then Charged = true end
+				if(State.counterSonar+1 >= Input.sonar) then Charged = true end
 			[] drone then
-				if(State.counterDrone == Input.drone) then Charged = true end
+				if(State.counterDrone+1 >= Input.drone) then Charged = true end
+			else
+			Charged = false
 		end
 
-		if Charged == nil then Charged = false end
-
-		tuple(item:Value isCharged:Charged)
+		if {IsDet Charged} == false then
+			Charged = false
+		end
+		info(item:Value isCharged:Charged)
 	end
 
 	%TODO
-	fun{GetItemReady State}
-		nil
+	fun{GetItemReady State} P in
+		if(State.counterMissile >= Input.missile) then
+			P={PositionToFire State.currentPosition 0 Input.minDistanceMissile Input.maxDistanceMissile nil}
+			info(item:missile val:missile(P))
+		elseif (State.counterSonar >= Input.sonar) then
+			info(item:sonar val:sonar)
+		elseif (State.counterMine >= Input.mine) then
+		P={PositionToFire State.currentPosition 0 Input.minDistanceMine Input.maxDistanceMine nil}
+			info(item:mine val:mine(P))
+		elseif (State.counterDrone >= Input.drone) then
+			if ({OS.rand} mod 2) == 1 then
+				%row x
+				info(item:drone val:drone(row:({OS.rand} mod Input.nRow +1 )))
+			else
+				%column y
+				info(item:drone val:drone(column:({OS.rand} mod Input.nColumn +1 )))
+			end
+		else
+			info(item:nil val:nil)
+		end
 	end
 
 	%TODO
 	%Il faut vérifier que la position ne dépasse pas la map, ne dépasse pas la distance max, ne pas sur une île (fais chier)
-	fun{PositionToFire Item CurrentPosition} ReturnValue Distance Direction in
+	fun{PositionToFire CurrentP N Min Max Path} ReturnValue List Direction P in
+		{System.showInfo 'PositionToFire '#N}
+		List = [north south east west]
+		Direction = {GetRandomElem List 4}
+		P = {GetNewPosition Direction CurrentP}
+		if {FindPointInList Path P} == yes then
+			{System.showInfo '   | P already visited'}
+			ReturnValue = {PositionToFire CurrentP N Min Max Path}
+		else
+			{System.showInfo '   | P NOT visited'}
 
-		Direction = {OS.rand mod 4}
+			if N < Min then
+			{System.showInfo '   | N < MIN'}
 
-		case Item of mine then
-		Distance = ({OS.rand mod Input.maxDistanceMine})+1
+				%TODO CheckPath
+				ReturnValue = {PositionToFire P N+1 Max Min P|Path}
+			elseif N >= Min andthen N < Max then
+				{System.showInfo '   | N >= MIN && N < MAX'}
 
+				if ({OS.rand} mod 2) == 1 then
+					ReturnValue = P
+				else
+					ReturnValue = {PositionToFire P N+1 Max Min P|Path}
+				end
+			else
+				{System.showInfo '   | N >= MAX'}
 
-		[] missile then
-		Distance = ({OS.rand mod Input.maxDistanceMissile})+1
-
-
-		[] drone then %pas sûr si le type de retour est correct. Est ce qu'il ne manque pas ':' ?
-		if (Direction == 0) then %north || south
-			ReturnValue = CurrentPosition.x
+					ReturnValue = P
+			end
 		end
 
-		if(Direction == 2) then
-			ReturnValue = CurrentPosition.x
-		end
-		ReturnValue = CurrentPosition.y
-
-		[] sonar then
-		ReturnValue = sonar
-
-		end%case
 		ReturnValue
 	end%fun
 
@@ -275,56 +330,64 @@ end %fun
 				{System.showInfo 'initPosition'}
 				ID = State.idPlayer
 				State.currentPosition = {InitPos Input.map}
+				State.counterMine = 0
+				State.counterDrone = 0
+				State.counterSonar = 0
+				State.counterMissile = 0
 				Position = State.currentPosition
-				NewState = {StateModification State initPath Position}
+				NewState = {StateModification State 'initPath' Position}
 
 		    {TreatStream T NewState}
 
 			[]move(?ID ?Position ?Direction)|T then NewState Pos in
-				{System.showInfo 'move'}
+				{System.showInfo 'move()'}
 
 				ID = State.idPlayer
 				Direction = {GenerateDirection State Input.map}
 				Pos = {GetNewPosition Direction State.currentPosition}
 				if Direction == surface then
-					NewState = {StateModification State initPath Pos}
+					NewState = {StateModification State 'initPath' Pos}
 				else
-					NewState = {StateModification State position Pos}
+					NewState = {StateModification State 'position' Pos}
 				end
 				Position = NewState.currentPosition
 				{TreatStream T NewState}
 
-			%TODO dive in state
 			[] dive|T then NewState in
-				{System.showInfo 'dive'}
+				{System.showInfo 'dive()'}
 				Dive = true
-				NewState = {StateModification State dive true}
-				{TreatStream T NewState}
-
-			%TODO update the state.item
-			[] chargeItem(?ID ?KindItem)|T then NewItem NewState in
-				/*ID = State.idPlayer
-				NewItem = {GenerateItem State}
-				NewState = {StateModification State 'chargeItem' NewItem.item}
-
-				if(NewItem.isCharged) then
-					KindItem = NewItem.item
-				end*/
 				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
-			[]fireItem(?ID ?KindItem)|T then ItemReady NewState Position in
-				/*ID = State.idPlayer
-				ItemReady = {GetItemReady State} %Méthode à créer !
-				if ItemReady == nil then
-					%ne rien faire
-				else
-					NewState = {StateModification State 'fireItem' ItemReady}
-					KindItem = {PositionToFire ItemReady State.currentPosition}
+			[] chargeItem(?ID ?KindItem)|T then NewItemTuple NewState in
+				{System.showInfo 'chargeItem()'}
+				ID = State.idPlayer
+				NewItemTuple = {GenerateItem State}
+				NewState = {StateModification State 'chargeItem' NewItemTuple.item}
+				if(NewItemTuple.isCharged) then
+						KindItem = NewItemTuple.item
 				end
-				KindItem=mine(pt:(x:1 y:1))*/
-				NewState = {StateModification State nil nil}
+				{System.showInfo '   | Charged :  Mine : '#NewState.counterMine#'  Missile : '#NewState.counterMissile#'  Drone : '#NewState.counterDrone#' Sonar'#NewState.counterSonar}
 				{TreatStream T NewState}
+
+			[] fireItem(?ID ?FireItem)|T then ItemReady NewState Position in
+				{System.showInfo 'fireItem()'}
+				ID = State.idPlayer
+				ItemReady = {GetItemReady State}
+				if ItemReady.val == nil then
+					{System.showInfo '   | ItemReady == nil'}
+
+				else
+					FireItem = ItemReady.val
+					{System.showInfo '   | ItemReady != nil '}
+
+				end
+				NewState = {StateModification State 'removeItem' ItemReady.item}
+
+				{Delay 1500}
+				{TreatStream T NewState}
+
+
 
 			[]fireMine(?ID ?Mine)|T then NewState in
 				NewState = {StateModification State nil nil}

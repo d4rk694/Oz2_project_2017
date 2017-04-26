@@ -2,6 +2,7 @@ functor
 import
    QTk at 'x-oz://system/wp/QTk.ozf'
    Input
+   OS
 export
    portWindow:StartWindow
 define
@@ -34,6 +35,8 @@ define
    StateModification
 
    UpdateLife
+
+   MainURL
 in
 
 %%%%% Build the initial window and set it up (call only once)
@@ -72,13 +75,19 @@ in
 
 
 %%%%% Squares of water and island
-   Squares = square(0:label(text:"" width:1 height:1 bg:c(102 102 255))
+   /*Squares = square(0:label(text:"" width:1 height:1 bg:c(102 102 255))
           1:label(text:"" borderwidth:5 relief:raised width:1 height:1 bg:c(153 76 0))
+         )*/
+   Squares = square(
+          0:label(text:"" width:1 height:1 bg:c(120 197 249))
+          1:label(text:"" borderwidth:5 relief:raised width:1 height:1 bg:c(76 68 50))
          )
+  MainURL={OS.getCWD}
 
 %%%%% Labels for rows and columns
-   fun{Label V}
-      label(text:V borderwidth:5 relief:raised bg:c(255 51 51) ipadx:5 ipady:5)
+   fun{Label V} Img_Wall in
+      Img_Wall   = {QTk.newImage photo(url:MainURL#"/inc/wall.gif")}
+      label(text:V borderwidth:5 relief:raised bg:c(153 76 0) ipadx:5 ipady:5 image:Img_Wall)
    end
 
 %%%%% Function to draw the map
@@ -110,7 +119,7 @@ in
       pt(x:X y:Y) = Position
       id(id:Id color:Color name:_) = ID
 
-      LabelSub = label(text:"S" handle:Handle borderwidth:5 relief:raised bg:Color ipadx:5 ipady:5)
+      LabelSub = label(text:"P"#ID.id handle:Handle borderwidth:5 relief:raised bg:Color ipadx:5 ipady:5)
       LabelScore = label(text:Input.maxDamage borderwidth:5 handle:HandleScore relief:solid bg:Color ipadx:5 ipady:5)
       HandlePath = {DrawPath Grid Color X Y}
       {Grid.grid configure(LabelSub row:X+1 column:Y+1 sticky:wesn)}
