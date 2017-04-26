@@ -76,11 +76,7 @@ define
 		{System.showInfo '  |   GenerateDirection '#State.idPlayer.name}
 		case Move of north then
 			P = pt(x:State.currentPosition.x-1 y:State.currentPosition.y)
-						if (P.x == 0) then
-				Direction = {GenerateDirection State Map}
-				elseif ({CanMoveTo P.x P.y Map} == no) then
-					Direction = {GenerateDirection State Map}
-				elseif ({FindPointInList State.path P} == yes) then
+				if (P.x == 0 orelse {CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
 					Direction = {GenerateDirection State Map}
 				else
 				Direction = north
@@ -89,33 +85,21 @@ define
 			 Direction = surface
  	 	[] east then
 	 		P = pt(x:State.currentPosition.x y:State.currentPosition.y+1)
-			if(P.y == (Input.nColumn)+1) then
-				Direction = {GenerateDirection State Map}
-			elseif ({CanMoveTo P.x P.y Map} == no) then
-				Direction = {GenerateDirection State Map}
-			elseif ({FindPointInList State.path P} == yes) then
+			if(P.y == (Input.nColumn)+1 orelse {CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
 				Direction = {GenerateDirection State Map}
 			else
 				Direction = east
 			end
 		[] south then
 	 		P = pt(x:State.currentPosition.x+1 y:State.currentPosition.y)
-			if(P.x == (Input.nRow)+1) then
-				Direction =  {GenerateDirection State Map}
-			elseif ({CanMoveTo P.x P.y Map} == no) then
-				Direction = {GenerateDirection State Map}
-			elseif ({FindPointInList State.path P} == yes) then
+			if(P.x == (Input.nRow)+1 orelse {CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
 				Direction = {GenerateDirection State Map}
 			else
 				Direction = south
 			end
 		[] west then
 	 		P = pt(x:State.currentPosition.x y:State.currentPosition.y-1)
-			if(P.y == 0) then
-				Direction = {GenerateDirection State Map}
-			elseif ({CanMoveTo P.x P.y Map} == no) then
-				Direction = {GenerateDirection State Map}
-			elseif ({FindPointInList State.path P} == yes) then
+			if(P.y == 0 orelse {CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
 				Direction = {GenerateDirection State Map}
 			else
 				Direction = west

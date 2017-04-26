@@ -60,6 +60,7 @@ define
       {System.showInfo '     Player'#Idnum #' : Moved to '#Direction}
         RetVal = false
       end
+      %TODO broadcast to all players
       RetVal
   end
 
