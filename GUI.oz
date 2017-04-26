@@ -24,7 +24,9 @@ define
    MoveSubmarine
    DrawMine
    RemoveMine
+   DrawExplosion
    DrawPath
+
 
    BuildWindow
 
@@ -114,12 +116,12 @@ in
 
 %%%%% Init the submarine
    fun{DrawSubmarine Grid ID Position}
-      Handle HandlePath HandleScore X Y Id Color LabelSub LabelScore
+      Handle HandlePath HandleScore X Y Id Color LabelSub LabelScore Img_Submarine
    in
       pt(x:X y:Y) = Position
       id(id:Id color:Color name:_) = ID
-
-      LabelSub = label(text:"P"#ID.id handle:Handle borderwidth:5 relief:raised bg:Color ipadx:5 ipady:5)
+      Img_Submarine   = {QTk.newImage photo(url:MainURL#"/inc/submarine.gif")}
+      LabelSub = label(text:"P"#ID.id handle:Handle borderwidth:5 relief:raised bg:Color ipadx:5 ipady:5 image:Img_Submarine)
       LabelScore = label(text:Input.maxDamage borderwidth:5 handle:HandleScore relief:solid bg:Color ipadx:5 ipady:5)
       HandlePath = {DrawPath Grid Color X Y}
       {Grid.grid configure(LabelSub row:X+1 column:Y+1 sticky:wesn)}
@@ -145,6 +147,7 @@ in
       end
    end
 
+
    fun{DrawMine Position}
       fun{$ Grid State}
     ID HandleScore Handle Mine Path LabelMine HandleMine X Y Img_Mine
@@ -167,8 +170,8 @@ in
     case List
     of nil then nil
     [] H|T then
-       if (H.1 == Position) then
-          {RemoveItem Grid H.2}
+       if (H.2 == Position) then
+          {RemoveItem Grid H.1}
           T
        else
           H|{RmMine Grid Position T}
@@ -186,6 +189,25 @@ in
     end
       end
    end
+
+   fun{DrawExplosion Position}
+      fun{$ Grid State}
+    ID HandleScore Handle Mine Path LabelMine HandleMine X Y Img_explosion
+      in
+      Img_explosion   = {QTk.newImage photo(url:MainURL#"/inc/explosion.gif")}
+    guiPlayer(id:ID score:HandleScore submarine:Handle mines:Mine path:Path) = State
+    pt(x:X y:Y) = Position
+%    LabelMine = label(text:"M" handle:HandleMine borderwidth:5 relief:raised bg:ID.color ipadx:5 ipady:5 image:Img_explosion)
+    LabelMine = label(text:"M" handle:HandleMine bg:ID.color ipadx:5 ipady:5 image:Img_explosion)
+
+    {Grid.grid configure(LabelMine row:X+1 column:Y+1)}
+    {HandleMine 'raise'()}
+    {Handle 'raise'()}
+    guiPlayer(id:ID score:HandleScore submarine:Handle mines:mine(HandleMine Position)|Mine path:Path)
+      end
+   end
+
+
 
    fun{DrawPath Grid Color X Y}
       Handle LabelPath
@@ -290,7 +312,8 @@ in
       [] removePlayer(ID)|T then
     {TreatStream T Grid {RemovePlayer Grid ID State}}
       [] explosion(ID Position)|T then
-    {TreatStream T Grid State}
+    %{TreatStream T Grid State}
+    {TreatStream T Grid {StateModification Grid ID State {DrawExplosion Position}}}
       [] drone(ID Drone)|T then
     {TreatStream T Grid State}
       [] sonar(ID)|T then

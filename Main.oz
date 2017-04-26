@@ -78,20 +78,27 @@ define
 
   %TODO
   proc{FireItem Idnum} ID FireItem in
-    {System.showInfo 'Ask FireItem'}
+  %  {System.showInfo 'Ask FireItem'}
     {Send Players.Idnum fireItem(?ID ?FireItem)}
-    {System.showInfo 'Asked FireItem!'}
+  %  {System.showInfo 'Asked FireItem!'}
 
     thread
       %TODO broadcast
       {Wait FireItem}
       case FireItem
       of nil then
-        {System.showInfo 'COucou'}
+       {System.showInfo 'COucou'}
       [] mine(P) then
         {Send PortWindow putMine(ID P)}
+
+      [] missile(P) then
+        {System.showInfo '                         MISSILE'}
+        {Send PortWindow explosion(ID P)}
+        {Delay 3500}
+        {Send PortWindow removeMine(ID P)}
+        {System.showInfo '                         MISSILE REMOVED'}
       else
-        {System.showInfo 'COucou X'}
+       {System.showInfo 'COucou X'}
       end
       {System.showInfo '### FIRED : MOTHAFUCKER!!!!!!'}
     end
@@ -122,11 +129,11 @@ define
           % 3. The broadcast (5.) is done in the proc MovePlayers
           if {MovePlayers J} then
             % 4. TODO Change in the state the value of the turnLeftSurface
-            {System.showInfo 'Surface for '#Input.turnSurface #' lap'}
+            %{System.showInfo 'Surface for '#Input.turnSurface #' lap'}
             TurnToSurface=Input.turnSurface - 1
             %We go derectly to 9. by skiping the else statement
           else
-            {System.showInfo '      Player'#J #' : Continue to play after moving'}
+            %{System.showInfo '      Player'#J #' : Continue to play after moving'}
             % 6.
             {ChargeItem J}
 
@@ -141,10 +148,10 @@ define
 
         % 9. Ending turn by decreasing the turnLeftSurface if > 0
         if State.J.turnLeftSurface > 0 then
-          {System.showInfo 'Change State to skip some turn'}
+          %{System.showInfo 'Change State to skip some turn'}
           NewState.J={StateModification State.J turnLeftSurface (State.J.turnLeftSurface - 1)}
       else
-          {System.showInfo 'Create new state'}
+          %{System.showInfo 'Create new state'}
           NewState.J={StateModification State.J turnLeftSurface TurnToSurface}
         end
 

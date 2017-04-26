@@ -9,7 +9,7 @@ export
 define
 
 	fun{GenerateInitialState}
-		state(idPlayer:_ currentPosition:_ counterMine:_ counterMissile:_ counterDrone:_ counterSonar: _ path:_ isUnderSurface:_)
+		state(idPlayer:_ currentPosition:_ counterMine:_ counterMissile:_ counterDrone:_ counterSonar: _ path:_ isUnderSurface:_ listMine:_)
 	end
 	%Get a random element From Result, where N is Max index to choose
 	fun{GetRandomElem Result N} I in
@@ -206,15 +206,13 @@ define
 				NewState.counterSonar = State.counterSonar
 				NewState.counterDrone = State.counterDrone
 			end
-
-			if Value == 'dive' then
-				NewState.isUnderSurface = Result
-			else
-				NewState.isUnderSurface = State.isUnderSurface
-			end
 		end
 
-
+		if Value == 'dive' then
+			NewState.isUnderSurface = Result
+		else
+			NewState.isUnderSurface = State.isUnderSurface
+		end
 
 		NewState
 	end
@@ -272,6 +270,8 @@ define
 		List = [north south east west]
 		Direction = {GetRandomElem List 4}
 		P = {GetNewPosition Direction CurrentP}
+
+
 		if ({FindPointInList Path P} == yes) then
 			{System.showInfo '   | P already visited'}
 			ReturnValue = {PositionToFire CurrentP N Min Max Path}
@@ -333,7 +333,7 @@ end %fun
 	    of nil then skip
 
 	    [] initPosition(?ID ?Position)|T then NewState in
-				{System.showInfo 'initPosition'}
+				%{System.showInfo 'initPosition'}
 				ID = State.idPlayer
 				State.currentPosition = {InitPos Input.map}
 				State.counterMine = 0
@@ -347,7 +347,7 @@ end %fun
 		    {TreatStream T NewState}
 
 			[]move(?ID ?Position ?Direction)|T then NewState Pos in
-				{System.showInfo 'move()'}
+				%{System.showInfo 'move()'}
 
 				ID = State.idPlayer
 				Direction = {GenerateDirection State Input.map}
@@ -361,7 +361,7 @@ end %fun
 				{TreatStream T NewState}
 
 			[] dive|T then NewState in
-				{System.showInfo 'dive()'}
+			%	{System.showInfo 'dive()'}
 				Dive = true
 				NewState = {StateModification State 'dive' true}
 				{TreatStream T NewState}
@@ -382,16 +382,15 @@ end %fun
 				ID = State.idPlayer
 				ItemReady = {GetItemReady State}
 				if ItemReady.val == nil then
-					{System.showInfo '   | ItemReady == nil'}
+				{System.showInfo '   | ItemReady == nil'}
 
 				else
 					FireItem = ItemReady.val
-					{System.showInfo '   | ItemReady != nil '}
+				%	{System.showInfo '   | ItemReady != nil '}
 
 				end
 				NewState = {StateModification State 'removeItem' ItemReady.item}
 
-				{Delay 1500}
 				{TreatStream T NewState}
 
 
