@@ -82,11 +82,10 @@ in
 
 %%%% Number of load for each item %%%%
 
-   Missile = 2
-   Mine = 2
-   Sonar = 2
-   Drone = 2
-
+   Missile = 1
+   Mine = 1
+   Sonar = 1
+   Drone = 1
 %%%% Distances of placement %%%%
 
    MinDistanceMine = 1

@@ -43,12 +43,18 @@ define
 	end
 
 	fun{CanMoveTo X Y Map} List Point in
-		List={GetElementInList Map X}
-		Point={GetElementInList List Y}
-		case Point of 1 then
+		if (X == 0 orelse X > (Input.nRow +1) orelse Y == 0 orelse Y > (Input.nColumn +1 )) then
 			no
-		[] 0 then
-			yes
+		else
+			List={GetElementInList Map X}
+			Point={GetElementInList List Y}
+			case Point of 1 then
+				no
+			[] 0 then
+				yes
+			else
+				no
+			end
 		end
 	end
 
@@ -271,10 +277,10 @@ define
 		Direction = {GetRandomElem List 4}
 		P = {GetNewPosition Direction CurrentP}
 
-
-		if ({FindPointInList Path P} == yes) then
+		if ({FindPointInList Path P} == yes orelse {CanMoveTo P.x P.y Input.map} == no) then
 			{System.showInfo '   | P already visited'}
 			ReturnValue = {PositionToFire CurrentP N Min Max Path}
+
 		else
 			{System.showInfo '   | P NOT visited'}
 
@@ -300,6 +306,8 @@ define
 
 		ReturnValue
 	end%fun
+
+
 
 	fun{DistanceFrom P1 P2}
 		{Abs P1.x - P2.x} + {Abs P1.y - P2.y}
