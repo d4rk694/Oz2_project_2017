@@ -9,7 +9,7 @@ export
 define
 
 	fun{GenerateInitialState}
-		state(idPlayer:_ currentPosition:_ counterMine:_ counterMissile:_ counterDrone:_ counterSonar: _ path:_ underSurface:false)
+		state(idPlayer:_ currentPosition:_ counterMine:_ counterMissile:_ counterDrone:_ counterSonar: _ path:_ isUnderSurface:_)
 	end
 	%Get a random element From Result, where N is Max index to choose
 	fun{GetRandomElem Result N} I in
@@ -206,6 +206,12 @@ define
 				NewState.counterSonar = State.counterSonar
 				NewState.counterDrone = State.counterDrone
 			end
+
+			if Value == 'dive' then
+				NewState.isUnderSurface = Result
+			else
+				NewState.isUnderSurface = State.isUnderSurface
+			end
 		end
 
 
@@ -266,7 +272,7 @@ define
 		List = [north south east west]
 		Direction = {GetRandomElem List 4}
 		P = {GetNewPosition Direction CurrentP}
-		if {FindPointInList Path P} == yes then
+		if ({FindPointInList Path P} == yes) then
 			{System.showInfo '   | P already visited'}
 			ReturnValue = {PositionToFire CurrentP N Min Max Path}
 		else
@@ -334,6 +340,7 @@ end %fun
 				State.counterDrone = 0
 				State.counterSonar = 0
 				State.counterMissile = 0
+				State.isUnderSurface = false
 				Position = State.currentPosition
 				NewState = {StateModification State 'initPath' Position}
 
@@ -356,7 +363,7 @@ end %fun
 			[] dive|T then NewState in
 				{System.showInfo 'dive()'}
 				Dive = true
-				NewState = {StateModification State nil nil}
+				NewState = {StateModification State 'dive' true}
 				{TreatStream T NewState}
 
 			[] chargeItem(?ID ?KindItem)|T then NewItemTuple NewState in
@@ -388,62 +395,61 @@ end %fun
 				{TreatStream T NewState}
 
 
-
+				%TODO
 			[]fireMine(?ID ?Mine)|T then NewState in
 				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]isSurface(?ID ?Answer)|T then NewState in
-				NewState = {StateModification State nil nil}
-				{TreatStream T NewState}
+				ID = State.idPlayer
+				Answer = State.underSurface
+				{TreatStream T State}
 
 			[]sayMove(ID Direction)|T then NewState in
-				NewState = {StateModification State nil nil}
-				{TreatStream T NewState}
+
+				{TreatStream T State}
 
 			[]saySurface(ID)|T then NewState in
-				NewState = {StateModification State nil nil}
-				{TreatStream T NewState}
+				{TreatStream T State}
 
 			[]sayCharge(ID KindItem)|T then NewState in
-				NewState = {StateModification State nil nil}
-				{TreatStream T NewState}
+				{TreatStream T State}
 
 			[]sayMinePlaced(ID)|T then NewState in
-				NewState = {StateModification State nil nil}
-				{TreatStream T NewState}
+				{TreatStream T State}
 
+				%TODO
 			[]sayMissileExplode(ID Position ?Message)|T then NewState in
 				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
+				%TODO
 			[]sayMineExplode(ID Position ?Message)|T then NewState in
 				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
+				%TODO
 			[]sayPassingDrone(Drone ?ID ?Answer)|T then NewState in
 				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayAnswerDrone(Drone ID Answer)|T then NewState in
-				NewState = {StateModification State nil nil}
-				{TreatStream T NewState}
+				{TreatStream T State}
 
+				%TODO
 			[]sayPassingSonar(?ID ?Answer)|T then NewState in
 				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 
 			[]sayAnswerSonar(ID Answer)|T then NewState in
-				NewState = {StateModification State nil nil}
-				{TreatStream T NewState}
+				{TreatStream T State}
+
 
 			[]sayDeath(ID)|T then NewState in
-				NewState = {StateModification State nil nil}
-				{TreatStream T NewState}
+				{TreatStream T State}
 
 			[]sayDamageTaken(ID Damage LifeLeft)|T then NewState in
-				NewState = {StateModification State nil nil}
-				{TreatStream T NewState}
+				{TreatStream T State}
 
 			[] _|T then NewState in
 				NewState = {StateModification State nil nil}

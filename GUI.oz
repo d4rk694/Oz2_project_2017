@@ -147,11 +147,14 @@ in
 
    fun{DrawMine Position}
       fun{$ Grid State}
-    ID HandleScore Handle Mine Path LabelMine HandleMine X Y
+    ID HandleScore Handle Mine Path LabelMine HandleMine X Y Img_Mine
       in
+      Img_Mine   = {QTk.newImage photo(url:MainURL#"/inc/mine.gif")}
     guiPlayer(id:ID score:HandleScore submarine:Handle mines:Mine path:Path) = State
     pt(x:X y:Y) = Position
-    LabelMine = label(text:"M" handle:HandleMine borderwidth:5 relief:raised bg:ID.color ipadx:5 ipady:5)
+%    LabelMine = label(text:"M" handle:HandleMine borderwidth:5 relief:raised bg:ID.color ipadx:5 ipady:5 image:Img_Mine)
+    LabelMine = label(text:"M" handle:HandleMine bg:ID.color ipadx:5 ipady:5 image:Img_Mine)
+
     {Grid.grid configure(LabelMine row:X+1 column:Y+1)}
     {HandleMine 'raise'()}
     {Handle 'raise'()}

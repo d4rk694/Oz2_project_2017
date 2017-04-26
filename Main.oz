@@ -85,7 +85,14 @@ define
     thread
       %TODO broadcast
       {Wait FireItem}
-
+      case FireItem
+      of nil then
+        {System.showInfo 'COucou'}
+      [] mine(P) then
+        {Send PortWindow putMine(ID P)}
+      else
+        {System.showInfo 'COucou X'}
+      end
       {System.showInfo '### FIRED : MOTHAFUCKER!!!!!!'}
     end
     %If KindItem binded => broadcast
