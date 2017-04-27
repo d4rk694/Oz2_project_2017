@@ -38,7 +38,9 @@ define
 
    UpdateLife
 
-   MainURL
+   MainURL={OS.getCWD}
+   Img_map = {QTk.newImage photo(url:MainURL#"/inc/map.gif")}
+   Img_Wall   = {QTk.newImage photo(url:MainURL#"/inc/wall.gif")}
 in
 
 %%%%% Build the initial window and set it up (call only once)
@@ -81,15 +83,14 @@ in
           1:label(text:"" borderwidth:5 relief:raised width:1 height:1 bg:c(153 76 0))
          )*/
    Squares = square(
-          0:label(text:"" width:1 height:1 bg:c(120 197 249))
-          1:label(text:"" borderwidth:5 relief:raised width:1 height:1 bg:c(76 68 50))
+          0:label(text:"" width:1 height:1 bg:c(120 197 249) )
+            %1:label(text:"" borderwidth:5 relief:raised width:1 height:1 bg:c(76 68 50) image:Img_map)
+            1:label(text:"" borderwidth:5 relief:raised width:1 height:1  image:Img_map)
          )
-  MainURL={OS.getCWD}
 
 %%%%% Labels for rows and columns
-   fun{Label V} Img_Wall in
-      Img_Wall   = {QTk.newImage photo(url:MainURL#"/inc/wall.gif")}
-      label(text:V borderwidth:5 relief:raised bg:c(153 76 0) ipadx:5 ipady:5 image:Img_Wall)
+   fun{Label V}
+      label(text:V borderwidth:5 relief:raised bg:c(153 76 0) ipadx:5 ipady:5)% image:Img_Wall)
    end
 
 %%%%% Function to draw the map
@@ -120,8 +121,9 @@ in
    in
       pt(x:X y:Y) = Position
       id(id:Id color:Color name:_) = ID
-      Img_Submarine   = {QTk.newImage photo(url:MainURL#"/inc/submarine.gif")}
-      LabelSub = label(text:"P"#ID.id handle:Handle borderwidth:5 relief:raised bg:Color ipadx:5 ipady:5 image:Img_Submarine)
+      Img_Submarine = {QTk.newImage photo(url:MainURL#"/inc/submarine_"#ID.color#".gif")}
+      %LabelSub = label(text:"P"#ID.id handle:Handle borderwidth:5 relief:raised bg:Color ipadx:5 ipady:5 image:Img_Submarine)
+      LabelSub = label(text:"P"#ID.id handle:Handle borderwidth:5 bg:c(120 197 249) ipadx:5 ipady:5 image:Img_Submarine)
       LabelScore = label(text:Input.maxDamage borderwidth:5 handle:HandleScore relief:solid bg:Color ipadx:5 ipady:5)
       HandlePath = {DrawPath Grid Color X Y}
       {Grid.grid configure(LabelSub row:X+1 column:Y+1 sticky:wesn)}
@@ -156,7 +158,7 @@ in
     guiPlayer(id:ID score:HandleScore submarine:Handle mines:Mine path:Path) = State
     pt(x:X y:Y) = Position
 %    LabelMine = label(text:"M" handle:HandleMine borderwidth:5 relief:raised bg:ID.color ipadx:5 ipady:5 image:Img_Mine)
-    LabelMine = label(text:"M" handle:HandleMine bg:ID.color ipadx:5 ipady:5 image:Img_Mine)
+    LabelMine = label(text:"M" handle:HandleMine bg:c(120 197 249) ipadx:5 ipady:5 image:Img_Mine)
 
     {Grid.grid configure(LabelMine row:X+1 column:Y+1)}
     {HandleMine 'raise'()}
@@ -198,7 +200,7 @@ in
     guiPlayer(id:ID score:HandleScore submarine:Handle mines:Mine path:Path) = State
     pt(x:X y:Y) = Position
 %    LabelMine = label(text:"M" handle:HandleMine borderwidth:5 relief:raised bg:ID.color ipadx:5 ipady:5 image:Img_explosion)
-    LabelMine = label(text:"M" handle:HandleMine bg:ID.color ipadx:5 ipady:5 image:Img_explosion)
+    LabelMine = label(text:"M" handle:HandleMine bg:c(120 197 249) ipadx:5 ipady:5 image:Img_explosion)
 
     {Grid.grid configure(LabelMine row:X+1 column:Y+1)}
     {HandleMine 'raise'()}
@@ -206,8 +208,6 @@ in
     guiPlayer(id:ID score:HandleScore submarine:Handle mines:mine(HandleMine Position)|Mine path:Path)
       end
    end
-
-
 
    fun{DrawPath Grid Color X Y}
       Handle LabelPath

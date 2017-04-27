@@ -9,7 +9,7 @@ export
 define
 
 	fun{GenerateInitialState}
-		state(idPlayer:_ currentPosition:_ counterMine:_ counterMissile:_ counterDrone:_ counterSonar: _ path:_ isUnderSurface:_ listMine:_ nbrMinePlaced:_)
+		state(idPlayer:_ lives:_ isAlive:_ currentPosition:_ counterMine:_ counterMissile:_ counterDrone:_ counterSonar: _ path:_ isUnderSurface:_ listMine:_ nbrMinePlaced:_)
 	end
 	%Get a random element From Result, where N is Max index to choose
 	fun{GetRandomElem Result N} I in
@@ -135,11 +135,9 @@ define
 	%Param Value = the attribute to update with the value of Result
 	fun{StateModification State Value Result} NewState PositionMine in
 		NewState = {GenerateInitialState}
-
 		NewState.idPlayer = State.idPlayer
 
 		if Value == 'initPath' then
-	%		{System.showInfo 'initPath'}
 			NewState.currentPosition = Result
 			NewState.path = Result|nil
 		else
@@ -151,6 +149,19 @@ define
 				NewState.path = State.path
 			end
 		end
+
+		if Value == 'updateLife' then
+			NewState.lives = Result
+		else
+			NewState.lives = State.lives
+		end
+
+		if NewState.lives > 0 then
+			NewState.isAlive = true
+		else
+			NewState.isAlive = false
+		end
+
 		if Value == 'chargeItem' then
 			if Result == mine then
 				NewState.counterMine = State.counterMine+1
@@ -169,6 +180,7 @@ define
 			else
 				NewState.counterDrone = State.counterDrone
 			end
+
 			if Result == sonar then
 				NewState.counterSonar = State.counterSonar+1
 			else
@@ -178,36 +190,28 @@ define
 			if Value == 'removeItem' then
 				if Result == mine then
 					NewState.counterMine = State.counterMine-Input.mine
-					%{System.showInfo ' Counter : '#NewState.counterMine}
-					%{System.showInfo 'MinePlaced on the list########################################################'}
-
 				else
 					NewState.counterMine = State.counterMine
 				end
 
 				if Result == missile then
 					NewState.counterMissile = State.counterMissile-Input.missile
-					%{System.showInfo ' Counter : '#NewState.counterMissile}
 				else
 					NewState.counterMissile = State.counterMissile
 				end
 
 				if Result == drone then
 					NewState.counterDrone = State.counterDrone-Input.drone
-					%{System.showInfo ' Counter : '#NewState.counterDrone}
-
 				else
 					NewState.counterDrone = State.counterDrone
 				end
+
 				if Result == sonar then
 					NewState.counterSonar = State.counterSonar-Input.sonar
-					%{System.showInfo ' Counter : '#NewState.counterSonar}
-
 				else
 					NewState.counterSonar = State.counterSonar
 				end
 			else
-
 				NewState.counterMine = State.counterMine
 				NewState.counterMissile = State.counterMissile
 				NewState.counterSonar = State.counterSonar
@@ -227,17 +231,13 @@ define
 				NewState.nbrMinePlaced = State.nbrMinePlaced
 				NewState.listMine = State.listMine
 			end
-
-
 		end
-
 
 		if Value == 'dive' then
 			NewState.isUnderSurface = Result
 		else
 			NewState.isUnderSurface = State.isUnderSurface
 		end
-
 		NewState
 	end
 
@@ -371,6 +371,7 @@ fun{StartPlayer Color ID}
         thread
 				State = {GenerateInitialState}
 				State.idPlayer = id(id:ID color:Color name:'Player'#ID)
+				State.lives = Input.maxDamage
         {TreatStream Stream  State}
         end
         Port
@@ -492,26 +493,74 @@ end %fun
 			[]sayMinePlaced(ID)|T then NewState in
 				{TreatStream T State}
 
-				%TODO
-			[]sayMissileExplode(ID Position ?Message)|T then NewState in
-				NewState = {StateModification State nil nil}
+				%TODO Check correct
+			[]sayMissileExplode(ID Position ?Message)|T then NewState Distance Damage LifeLeft in
+				Distance = {DistanceFrom Position State.currentPosition}
+				if Distance == 0 then
+					Damage = 2
+				elseif Distance == 1 then
+					Damage = 1
+				else
+					Damage = 0
+				end
+				LifeLeft = (State.lives - Damage)
+				if LifeLeft > 0 then
+					Message = sayDamageTaken(State.idPlayer Damage LifeLeft)
+				else %submarine Destroyed
+					Message = sayDeath(State.idPlayer)
+				end
+
+				NewState = {StateModification State updateLife LifeLeft}
 				{TreatStream T NewState}
 
-				%TODO
-			[]sayMineExplode(ID Position ?Message)|T then NewState in
-				NewState = {StateModification State nil nil}
+				%TODO check correct
+			[]sayMineExplode(ID Position ?Message)|T then NewState Distance Damage LifeLeft in
+				Distance = {DistanceFrom Position State.currentPosition}
+				if Distance == 0 then
+					Damage = 2
+				elseif Distance == 1 then
+					Damage = 1
+				else
+					Damage = 0
+				end
+				LifeLeft = (State.lives - Damage)
+				if LifeLeft > 0 then
+					Message = sayDamageTaken(State.idPlayer Damage LifeLeft)
+				else %submarine Destroyed
+					Message = sayDeath(State.idPlayer)
+				end
+
+				NewState = {StateModification State updateLife LifeLeft}
 				{TreatStream T NewState}
 
-				%TODO
+				%TODO check
 			[]sayPassingDrone(Drone ?ID ?Answer)|T then NewState in
-				NewState = {StateModification State nil nil}
-				{TreatStream T NewState}
+				ID = State.idPlayer
+				case Drone
+				of drone(row:X) then
+					if X == State.currentPosition.x then
+						Answer = true
+					else
+						Answer = false
+					end
+				[] drone(column:Y) then
+					if Y == State.currentPosition.y then
+						Answer = true
+					else
+						Answer = false
+					end
+				else
+					Answer = false
+				end
+				{TreatStream T State}
 
 			[]sayAnswerDrone(Drone ID Answer)|T then NewState in
 				{TreatStream T State}
 
 				%TODO
 			[]sayPassingSonar(?ID ?Answer)|T then NewState in
+				%ID = State.idPlayer
+
 				NewState = {StateModification State nil nil}
 				{TreatStream T NewState}
 

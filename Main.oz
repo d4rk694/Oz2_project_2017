@@ -92,11 +92,11 @@ define
         {Send PortWindow putMine(ID P)}
 
       [] missile(P) then
-        {System.showInfo '                         MISSILE'}
+      %  {System.showInfo '                         MISSILE'}
         {Send PortWindow explosion(ID P)}
-        {Delay 2000}
+        {Delay 1000}
         {Send PortWindow removeMine(ID P)}
-        {System.showInfo '                         MISSILE REMOVED'}
+      %  {System.showInfo '                         MISSILE REMOVED'}
       [] sonar then
         {System.showInfo 'Sonar Launche by '#ID.name}
       [] drone(row:X) then
@@ -104,12 +104,14 @@ define
       [] drone(column:Y) then
         {System.showInfo 'Drone Launched on column '#Y#' by '#ID.name}
       else
-       {System.showInfo 'COucou X'}
+       {System.showInfo 'Not an item recognized'}
       end
-      {System.showInfo '### FIRED : MOTHAFUCKER!!!!!!'}
+      %{System.showInfo '### FIRED : MOTHAFUCKER!!!!!!'}
     end
     %If KindItem binded => broadcast
   end
+
+  %proc{Broadcast ID Message }
 
   %TODO broadcast
   proc{BlowMine Idnum} ID Mine in
@@ -117,6 +119,9 @@ define
 
     thread
       {Wait Mine}
+      {Send PortWindow removeMine(ID Mine.1)}
+      {Send PortWindow explosion(ID Mine.1)}
+      {Delay 1000}
       {Send PortWindow removeMine(ID Mine.1)}
       {System.showInfo 'Mine explosed at position : X:' #Mine.1.x #' Y:'#Mine.1.y}
     end
