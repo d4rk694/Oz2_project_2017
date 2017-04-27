@@ -69,7 +69,6 @@ define
 		Value
 	end
 
-	%TODO Check Path
 	fun{GenerateDirection State Map}
 		P
  		Move
@@ -79,7 +78,6 @@ define
 		%Big list to have only 11% chance to go on the surface
 		ListDirection = [north south east west surface north south east west north south east west north south east west surface]
 		Move = {GetRandomElem ListDirection 18}
-		%		{System.showInfo '  |   GenerateDirection '#State.idPlayer.name}
 		case Move of north then
 			P = pt(x:State.currentPosition.x-1 y:State.currentPosition.y)
 				if ({CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
@@ -224,7 +222,6 @@ define
 		if Value == 'fireMine' then
 			NewState.listMine = Result|State.listMine
 			NewState.nbrMinePlaced = State.nbrMinePlaced + 1
-			%{System.showInfo 'Mine Added'}
 		else
 			if Value == 'blowMine' then
 					NewState.nbrMinePlaced = State.nbrMinePlaced - 1
@@ -243,7 +240,6 @@ define
 		NewState
 	end
 
-	%TODO test with value +1
 	fun{GenerateItem State} List Value Charged in
 		List = [mine missile sonar drone]
 		Value = {GetRandomElem List 4}
@@ -266,7 +262,6 @@ define
 		info(item:Value isCharged:Charged)
 	end
 
-	%TODO
 	fun{GetItemReady State} P in
 		if(State.counterMissile >= Input.missile) then
 			P={PositionToFire State.currentPosition 0 Input.minDistanceMissile Input.maxDistanceMissile nil}
@@ -289,39 +284,23 @@ define
 		end
 	end
 
-	%TODO
-	%Il faut vérifier que la position ne dépasse pas la map, ne dépasse pas la distance max, ne pas sur une île (fais chier)
 	fun{PositionToFire CurrentP N Min Max Path} ReturnValue List Direction P in
-		%{System.showInfo 'PositionToFire '#N}
 		List = [north south east west]
 		Direction = {GetRandomElem List 4}
 		P = {GetNewPosition Direction CurrentP}
 
 		if ({FindPointInList Path P} == yes orelse {CanMoveTo P.x P.y Input.map} == no) then
-			%{System.showInfo '||   || Point already visited : pt(x:'#P.x#' y:'#P.y#')'}
-			%{PrintPath Path}
-
 			ReturnValue = {PositionToFire CurrentP N Min Max Path}
-
 		else
-			%{System.showInfo '   | P NOT visited'}
-
 			if N < Min then
-			%{System.showInfo '   | N < MIN'}
-
-				%TODO CheckPath
 				ReturnValue = {PositionToFire P N+1 Max Min P|Path}
 			elseif N >= Min andthen N < Max then
-				%{System.showInfo '   | N >= MIN && N < MAX'}
-
 				if ({OS.rand} mod 2) == 1 then
 					ReturnValue = P
 				else
 					ReturnValue = {PositionToFire P N+1 Max Min P|Path}
 				end
 			else
-				%{System.showInfo '   | N >= MAX'}
-
 					ReturnValue = P
 			end
 		end
@@ -334,7 +313,7 @@ define
 			of nil then
 				skip
 			[] H|T then
-			{System.showInfo '||    || pt(x:'#H.x#' y:'#H.y#')'}
+			{System.showInfo '[DEBUG] Path : pt(x:'#H.x#' y:'#H.y#')'}
 		end
 		skip
 	end
@@ -403,7 +382,6 @@ end %fun
 
 			[]move(?ID ?Position ?Direction)|T then NewState Pos in
 				%{System.showInfo 'move()'}
-
 				ID = State.idPlayer
 				Direction = {GenerateDirection State Input.map}
 				Pos = {GetNewPosition Direction State.currentPosition}
@@ -436,42 +414,27 @@ end %fun
 				%{System.showInfo 'fireItem()'}
 				ID = State.idPlayer
 				ItemReady = {GetItemReady State}
-				if ItemReady.val == nil then
-					{System.showInfo '   | ItemReady == nil'}
-
-				else
+				if ItemReady.val \= nil then
 					FireItem = ItemReady.val
 				end
 				if ItemReady.item == mine then
 					NewState2 = {StateModification State 'fireMine' ItemReady.val}
-					%{System.showInfo ID.name#' placed '#NewState2.nbrMinePlaced#' mines'}
-
 				else
 					NewState2 = {StateModification State nil nil}
-					%{System.showInfo 'NewState2 without mine'}
 				end
-					NewState = {StateModification NewState2 'removeItem' ItemReady.item}
+				NewState = {StateModification NewState2 'removeItem' ItemReady.item}
 
 				{TreatStream T NewState}
 
-
-				%TODO
 			[]fireMine(?ID ?Mine)|T then NewState CurrentM L in
 				%{System.showInfo 'fireMine()'}
 				CurrentM = {GetRandomElem State.listMine State.nbrMinePlaced}
-				%{System.showInfo 'Recoverd an element | MINE placed : '#State.nbrMinePlaced }
 				ID = State.idPlayer
-
 				if CurrentM \= nil then
-					%{System.showInfo 'Recoverd a Mine'}
 					L = {RemoveElementFrom State.listMine CurrentM}
-					%{System.showInfo 'Recoverd List without the mine'}
-
 					NewState = {StateModification State 'blowMine' L}
 					Mine = CurrentM
 				else
-				%{System.showInfo 'Did not recoverd a mine'}
-
 					NewState = {StateModification State nil nil}
 				end
 				{TreatStream T NewState}
@@ -482,20 +445,34 @@ end %fun
 				{TreatStream T State}
 
 			[]sayMove(ID Direction)|T then NewState in
-
+				if ID \= nil then
+					{System.showInfo '[RADIO] '#ID.name#' has moved to '#Direction}
+				end
 				{TreatStream T State}
 
 			[]saySurface(ID)|T then NewState in
+				if ID \= nil then
+					{System.showInfo '[RADIO] '#ID.name#' has made surface'}
+				end
 				{TreatStream T State}
 
 			[]sayCharge(ID KindItem)|T then NewState in
+				if ID \= nil then
+					{System.showInfo '[RADIO] '#ID.name#' has Charged a '#KindItem}
+				end
 				{TreatStream T State}
 
 			[]sayMinePlaced(ID)|T then NewState in
+				if ID \= nil then
+					{System.showInfo '[RADIO] '#ID.name#' has planted a mine'}
+				end
 				{TreatStream T State}
 
 				%TODO Check correct
 			[]sayMissileExplode(ID Position ?Message)|T then NewState Distance Damage LifeLeft in
+				if ID \= nil then
+					{System.showInfo '[RADIO] '#ID.name#' launched a missile at the coordonate '#Position.x#'-'#Position.y}
+				end
 				Distance = {DistanceFrom Position State.currentPosition}
 				if Distance == 0 then
 					Damage = 2
@@ -510,12 +487,13 @@ end %fun
 				else %submarine Destroyed
 					Message = sayDeath(State.idPlayer)
 				end
-
 				NewState = {StateModification State updateLife LifeLeft}
 				{TreatStream T NewState}
 
-				%TODO check correct
 			[]sayMineExplode(ID Position ?Message)|T then NewState Distance Damage LifeLeft in
+				if ID \= nil then
+					{System.showInfo '[RADIO] '#ID.name#' blow a mine at the coordonate '#Position.x#'-'#Position.y}
+				end
 				Distance = {DistanceFrom Position State.currentPosition}
 				if Distance == 0 then
 					Damage = 2
@@ -530,21 +508,22 @@ end %fun
 				else %submarine Destroyed
 					Message = sayDeath(State.idPlayer)
 				end
-
 				NewState = {StateModification State updateLife LifeLeft}
 				{TreatStream T NewState}
 
-				%TODO check
 			[]sayPassingDrone(Drone ?ID ?Answer)|T then NewState in
+
 				ID = State.idPlayer
 				case Drone
 				of drone(row:X) then
+					{System.showInfo '[RADIO] A Drone has been deployed on the row '#X}
 					if X == State.currentPosition.x then
 						Answer = true
 					else
 						Answer = false
 					end
 				[] drone(column:Y) then
+					{System.showInfo '[RADIO] A Drone has been deployed on the column '#Y}
 					if Y == State.currentPosition.y then
 						Answer = true
 					else
@@ -559,22 +538,21 @@ end %fun
 				if Answer then
 					case Drone
 					of drone(row:X) then
-						{System.showInfo 'DRONE '#ID.name #' At row: ' #X}
-
+						{System.showInfo '[RADIO] '#ID.name#' is on the row '#X}
 					[] drone(column:Y) then
-						{System.showInfo 'DRONE '#ID.name #' At column: ' #Y}
+						{System.showInfo '[RADIO] '#ID.name#' is on the column '#Y}
 					else
 						{System.showInfo 'Problem Drone'}
 					end
 				else
-					{System.showInfo 'DRONE '#ID.name #' not in the range '}
+					{System.showInfo '[RADIO] '#ID.name#' isn\'t on the range of the drone'}
 				end
 
 				{TreatStream T State}
 
 				%TODO
 			[]sayPassingSonar(?ID ?Answer)|T then NewState P in
-				%
+				{System.showInfo '[RADIO] A sonar signal has been capted'}
 
 				if ({OS.rand } mod 2)  == 0 then
 					%X correct
@@ -593,14 +571,22 @@ end %fun
 				{TreatStream T State}
 
 			[]sayAnswerSonar(ID Answer)|T then NewState in
-				{System.showInfo '***********SONAR '#ID.name #'At position x: '#Answer.x #'y: '#Answer.y}
+				if ID \= nil then
+					{System.showInfo '[RADIO] '#ID.name #' has been detected at position '#Answer.x #'-'#Answer.y#' by the sonar'}
+				end
 				{TreatStream T State}
 
 
 			[]sayDeath(ID)|T then NewState in
+				if ID \= nil then
+					{System.showInfo '[RADIO] '#ID.name#' is dead'}
+				end
 				{TreatStream T State}
 
 			[]sayDamageTaken(ID Damage LifeLeft)|T then NewState in
+				if ID \= nil then
+					{System.showInfo '[RADIO] '#ID.name#' has taken ' #Damage#' damage(s) [LIFELEFT = '#LifeLeft#']'}
+				end
 				{TreatStream T State}
 
 			[] _|T then NewState in

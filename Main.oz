@@ -27,16 +27,12 @@ define
   end
 
   fun{StateModification State Value Result} NewStatePlayer in
-    %  {System.showInfo 'Creating state'}
     NewStatePlayer={GenerateInitialState}
-
     if Value == turnLeftSurface then
       NewStatePlayer.turnLeftSurface = Result
     else
       NewStatePlayer.turnLeftSurface = State.turnLeftSurface
     end
-
-
     NewStatePlayer
   end
 
@@ -46,42 +42,31 @@ define
   end
 
   fun{MovePlayers Idnum} ID Position Direction RetVal in
-      %{System.showInfo '     Player'#Idnum #' : Moving'}
       {Send Players.Idnum move(ID Position Direction)}
       {Send PortWindow movePlayer(ID Position)}
       if(Direction == surface) then
-      %  {System.showInfo '     Player'#Idnum #' : Moved to surface'}
         {Send PortWindow surface(ID)}
         {Broadcast ID saySurface(ID)}
         RetVal = true
       else
-      %{System.showInfo '     Player'#Idnum #' : Moved to '#Direction}
         {Broadcast ID sayMove(ID Direction)}
         RetVal = false
       end
       RetVal
   end
 
-  %TODO broadcast
   proc{ChargeItem Idnum} ID KindItem in
-    %{System.showInfo 'Ask ChargeItem'}
     {Send Players.Idnum chargeItem(?ID ?KindItem)}
     thread
-      %TODO broadcast
       {Wait KindItem}
       if ID \= nil then
         {Broadcast ID sayCharge(ID KindItem)}
       end
-    %  {System.showInfo '###'#KindItem}
     end
-    %If KindItem CHarged => broadcast
   end
 
   proc{FireItem Idnum} ID FireItem in
-      %  {System.showInfo 'Ask FireItem'}
     {Send Players.Idnum fireItem(?ID ?FireItem)}
-    %  {System.showInfo 'Asked FireItem!'}
-
     thread
       {Wait FireItem}
       if ID \= nil then
@@ -92,7 +77,6 @@ define
           {Send PortWindow putMine(ID P)}
           {Broadcast ID sayMinePlaced(ID)}
         [] missile(P) then
-        %  {System.showInfo '                         MISSILE'}
           for I in 1..Input.nbPlayer do
             thread
               local Message in
@@ -103,13 +87,12 @@ define
                   skip
                 [] sayDeath(PlayerId) then
                   if PlayerId \= nil then
-                    {System.showInfo '********Player dead : '#PlayerId.name}
+                    {System.showInfo '[INFO]'# ID.name #' killed '#PlayerId.name#' with a missile'}
                     {Send PortWindow removePlayer(PlayerId)}
                   end
-
                 [] sayDamageTaken(PlayerId DamageTaken LifeLeft) then
                   if PlayerId \= nil then
-                    {System.showInfo '**' #PlayerId.name #' has take '#DamageTaken #' Damages, Lifeleft : '#LifeLeft }
+                    {System.showInfo '[INFO]'#PlayerId.name#' has lost '#DamageTaken #' with a missile by '#ID.name#', [LIFELEFT = '#LifeLeft#']'}
                     {Send PortWindow lifeUpdate(PlayerId LifeLeft)}
                   end
                 end
@@ -139,20 +122,35 @@ define
           end
 
         [] drone(row:X) then
-          {System.showInfo 'Drone Launched on row '#X#' by '#ID.name}
-          for I in 1..Input.nbPlayer do
-            thread
-              local Answer IDPlayer in
-                {Send Players.I sayPassingDrone(FireItem IDPlayer Answer)}
-                {Wait Answer}
-                if IDPlayer \= nil andthen IDPlayer.id \= ID.id then
-                  {Send Players.Idnum sayAnswerDrone(FireItem IDPlayer Answer)}
+          if ID \= nil then
+            {System.showInfo '[INFO] '#ID.name #' sent a Drone on row '#X}
+            for I in 1..Input.nbPlayer do
+              thread
+                local Answer IDPlayer in
+                  {Send Players.I sayPassingDrone(FireItem IDPlayer Answer)}
+                  {Wait Answer}
+                  if IDPlayer \= nil andthen IDPlayer.id \= ID.id then
+                    {Send Players.Idnum sayAnswerDrone(FireItem IDPlayer Answer)}
+                  end
                 end
               end
             end
           end
         [] drone(column:Y) then
-          {System.showInfo 'Drone Launched on column '#Y#' by '#ID.name}
+          if ID \= nil then
+            {System.showInfo '[INFO] '#ID.name #' sent a Drone on column '#Y}
+            for I in 1..Input.nbPlayer do
+              thread
+                local Answer IDPlayer in
+                  {Send Players.I sayPassingDrone(FireItem IDPlayer Answer)}
+                  {Wait Answer}
+                  if IDPlayer \= nil andthen IDPlayer.id \= ID.id then
+                    {Send Players.Idnum sayAnswerDrone(FireItem IDPlayer Answer)}
+                  end
+                end
+              end
+            end
+          end
         else
          {System.showInfo 'Not an item recognized'}
         end
@@ -188,14 +186,14 @@ define
             of nil then
               skip
             [] sayDeath(PlayerId) then
-              if PlayerId \= nil then
-                {System.showInfo '********Player dead : '#PlayerId.name}
+              if PlayerId \= nil andthen ID \= nil then
+                {System.showInfo '[INFO]'# ID.name #' killed '#PlayerId.name#' with a mine '}
                 {Send PortWindow removePlayer(PlayerId)}
               end
 
             [] sayDamageTaken(PlayerId DamageTaken LifeLeft) then
-              if PlayerId \= nil then
-                {System.showInfo '**' #PlayerId.name #' has take '#DamageTaken #' Damages, Lifeleft : '#LifeLeft }
+              if PlayerId \= nil andthen ID \= nil  then
+                {System.showInfo '[INFO]'#PlayerId.name#' has lost '#DamageTaken #' with a mine by '#ID.name#', [LIFELEFT = '#LifeLeft#']'}
                 {Send PortWindow lifeUpdate(PlayerId LifeLeft)}
               end
             end
@@ -205,7 +203,9 @@ define
       end
       {Delay 1000}
       {Send PortWindow removeMine(ID Mine.1)}
-      {System.showInfo 'Mine explosed at position : X:' #Mine.1.x #' Y:'#Mine.1.y}
+      if ID \= nil then
+        {System.showInfo '[INFO] '#ID.name#' blowed a mine at position : X:' #Mine.1.x #' Y:'#Mine.1.y}
+      end
     end
     skip
   end
@@ -216,10 +216,7 @@ define
     for J in 1..N do
       local TurnToSurface in
         {Delay Input.thinkMin}
-        {System.showInfo 'turn for player '#J}
-
-        %check if submarine is under the surface
-          %if first round or previous rounds the player is at the surface => send Dive
+        {System.showInfo '[DEBUG] Turn start for player '#J}
 
         % 1.
         if State.J.turnLeftSurface == 0 then
@@ -254,8 +251,8 @@ define
   end
 
   proc {StartSimultaneous PlayerNum} WaitingTime in
-    {System.showInfo '-----------------------------------Start simultaneous for player '#PlayerNum}
-    WaitingTime = ({OS.rand} mod 500)
+    {System.showInfo '[DEBUG] Start simultaneous for player '#PlayerNum}
+    WaitingTime = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin %to Simulate Thinking betweed Input.thinkMin & Input.thinkMax
     % 1. send dive Message
     {Send Players.PlayerNum dive}
     % 2. delay Thinking
@@ -308,7 +305,6 @@ in
 		Players.I={PlayerManager.playerGenerator {GetElementInList Input.players I} {GetElementInList Input.colors I} I}
     PlayersState.I={GenerateInitialState}
     PlayersState.I.turnLeftSurface = 0
-  %  {System.showInfo 'TurnSurface for players '# PlayersState.I.turnLeftSurface}
 	end
 
   for I in 1..Input.nbPlayer do
@@ -324,5 +320,4 @@ in
       end
     end
   end
-
 end
