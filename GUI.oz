@@ -26,6 +26,8 @@ define
    RemoveMine
    DrawExplosion
    DrawPath
+   DrawMissile
+   GetPicture
 
 
    BuildWindow
@@ -41,9 +43,75 @@ define
    MainURL={OS.getCWD}
    Img_map = {QTk.newImage photo(url:MainURL#"/inc/map.gif")}
    Img_Wall   = {QTk.newImage photo(url:MainURL#"/inc/wall.gif")}
+
+   Img_Submarine_red = {QTk.newImage photo(url:MainURL#"/inc/submarine_red.gif")}
+   Img_Submarine_blue = {QTk.newImage photo(url:MainURL#"/inc/submarine_blue.gif")}
+   Img_Submarine_yellow = {QTk.newImage photo(url:MainURL#"/inc/submarine_yellow.gif")}
+   Img_Submarine_white = {QTk.newImage photo(url:MainURL#"/inc/submarine_white.gif")}
+   Img_Submarine_green = {QTk.newImage photo(url:MainURL#"/inc/submarine_green.gif")}
+   Img_Submarine_black = {QTk.newImage photo(url:MainURL#"/inc/submarine_black.gif")}
+
+   Img_Missile_red = {QTk.newImage photo(url:MainURL#"/inc/nuke_red.gif")}
+   Img_Missile_blue = {QTk.newImage photo(url:MainURL#"/inc/nuke_blue.gif")}
+   Img_Missile_yellow = {QTk.newImage photo(url:MainURL#"/inc/nuke_yellow.gif")}
+   Img_Missile_white = {QTk.newImage photo(url:MainURL#"/inc/nuke_white.gif")}
+   Img_Missile_green = {QTk.newImage photo(url:MainURL#"/inc/nuke_green.gif")}
+   Img_Missile_black = {QTk.newImage photo(url:MainURL#"/inc/nuke_black.gif")}
+
+   Img_Mine   = {QTk.newImage photo(url:MainURL#"/inc/mine.gif")}
+   Img_explosion   = {QTk.newImage photo(url:MainURL#"/inc/explosion.gif")}
+
 in
 
 %%%%% Build the initial window and set it up (call only once)
+
+  fun{GetPicture Pict Color}
+    case Color
+      of red then
+        case Pict
+          of submarine then
+          Img_Submarine_red
+          [] nuke then
+          Img_Missile_red
+        end
+      [] blue then
+        case Pict
+          of submarine then
+          Img_Submarine_blue
+          [] nuke then
+          Img_Missile_blue
+        end
+      [] white then
+        case Pict
+          of submarine then
+          Img_Submarine_white
+          [] nuke then
+          Img_Missile_white
+        end
+      [] black then
+        case Pict
+          of submarine then
+          Img_Submarine_black
+          [] nuke then
+          Img_Missile_black
+        end
+      [] yellow then
+        case Pict
+          of submarine then
+          Img_Submarine_yellow
+          [] nuke then
+          Img_Missile_yellow
+        end
+      [] green then
+        case Pict
+          of submarine then
+          Img_Submarine_green
+          [] nuke then
+          Img_Submarine_green
+        end
+    end
+  end
+
    fun{BuildWindow}
       Grid GridScore Toolbar Desc DescScore Window
    in
@@ -117,13 +185,13 @@ in
 
 %%%%% Init the submarine
    fun{DrawSubmarine Grid ID Position}
-      Handle HandlePath HandleScore X Y Id Color LabelSub LabelScore Img_Submarine
+      Handle HandlePath HandleScore X Y Id Color LabelSub LabelScore Img
    in
       pt(x:X y:Y) = Position
       id(id:Id color:Color name:_) = ID
-      Img_Submarine = {QTk.newImage photo(url:MainURL#"/inc/submarine_"#ID.color#".gif")}
       %LabelSub = label(text:"P"#ID.id handle:Handle borderwidth:5 relief:raised bg:Color ipadx:5 ipady:5 image:Img_Submarine)
-      LabelSub = label(text:"P"#ID.id handle:Handle borderwidth:5 bg:c(120 197 249) ipadx:5 ipady:5 image:Img_Submarine)
+      Img={GetPicture submarine ID.color}
+      LabelSub = label(text:"P"#ID.id handle:Handle borderwidth:5 bg:c(120 197 249) ipadx:5 ipady:5 image:Img)
       LabelScore = label(text:Input.maxDamage borderwidth:5 handle:HandleScore relief:solid bg:Color ipadx:5 ipady:5)
       HandlePath = {DrawPath Grid Color X Y}
       {Grid.grid configure(LabelSub row:X+1 column:Y+1 sticky:wesn)}
@@ -152,12 +220,11 @@ in
 
    fun{DrawMine Position}
       fun{$ Grid State}
-    ID HandleScore Handle Mine Path LabelMine HandleMine X Y Img_Mine
+    ID HandleScore Handle Mine Path LabelMine HandleMine X Y
       in
-      Img_Mine   = {QTk.newImage photo(url:MainURL#"/inc/mine.gif")}
     guiPlayer(id:ID score:HandleScore submarine:Handle mines:Mine path:Path) = State
     pt(x:X y:Y) = Position
-%    LabelMine = label(text:"M" handle:HandleMine borderwidth:5 relief:raised bg:ID.color ipadx:5 ipady:5 image:Img_Mine)
+    %    LabelMine = label(text:"M" handle:HandleMine borderwidth:5 relief:raised bg:ID.color ipadx:5 ipady:5 image:Img_Mine)
     LabelMine = label(text:"M" handle:HandleMine bg:c(120 197 249) ipadx:5 ipady:5 image:Img_Mine)
 
     {Grid.grid configure(LabelMine row:X+1 column:Y+1)}
@@ -194,13 +261,30 @@ in
 
    fun{DrawExplosion Position}
       fun{$ Grid State}
-    ID HandleScore Handle Mine Path LabelMine HandleMine X Y Img_explosion
+    ID HandleScore Handle Mine Path LabelMine HandleMine X Y
       in
-      Img_explosion   = {QTk.newImage photo(url:MainURL#"/inc/explosion.gif")}
     guiPlayer(id:ID score:HandleScore submarine:Handle mines:Mine path:Path) = State
     pt(x:X y:Y) = Position
-%    LabelMine = label(text:"M" handle:HandleMine borderwidth:5 relief:raised bg:ID.color ipadx:5 ipady:5 image:Img_explosion)
+    %    LabelMine = label(text:"M" handle:HandleMine borderwidth:5 relief:raised bg:ID.color ipadx:5 ipady:5 image:Img_explosion)
     LabelMine = label(text:"M" handle:HandleMine bg:c(120 197 249) ipadx:5 ipady:5 image:Img_explosion)
+
+    {Grid.grid configure(LabelMine row:X+1 column:Y+1)}
+    {HandleMine 'raise'()}
+    {Handle 'raise'()}
+    guiPlayer(id:ID score:HandleScore submarine:Handle mines:mine(HandleMine Position)|Mine path:Path)
+      end
+   end
+
+   fun{DrawMissile Position}
+      fun{$ Grid State}
+    ID HandleScore Handle Mine Path LabelMine HandleMine X Y Img
+      in
+    guiPlayer(id:ID score:HandleScore submarine:Handle mines:Mine path:Path) = State
+    pt(x:X y:Y) = Position
+    %    LabelMine = label(text:"M" handle:HandleMine borderwidth:5 relief:raised bg:ID.color ipadx:5 ipady:5 image:Img_Mine)
+    Img={GetPicture nuke ID.color}
+
+    LabelMine = label(text:"M" handle:HandleMine bg:c(120 197 249) ipadx:5 ipady:5 image:Img)
 
     {Grid.grid configure(LabelMine row:X+1 column:Y+1)}
     {HandleMine 'raise'()}
@@ -314,6 +398,9 @@ in
       [] explosion(ID Position)|T then
     %{TreatStream T Grid State}
     {TreatStream T Grid {StateModification Grid ID State {DrawExplosion Position}}}
+      [] missile(ID Position)|T then
+    %{TreatStream T Grid State}
+    {TreatStream T Grid {StateModification Grid ID State {DrawMissile Position}}}
       [] drone(ID Drone)|T then
     {TreatStream T Grid State}
       [] sonar(ID)|T then

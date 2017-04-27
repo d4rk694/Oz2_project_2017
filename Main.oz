@@ -117,8 +117,11 @@ define
               end
             end
           end
+          {Send PortWindow missile(ID P)}
+          {Delay 500}
+          {Send PortWindow removeMine(ID P)}
           {Send PortWindow explosion(ID P)}
-          {Delay 1000}
+          {Delay 750}
           {Send PortWindow removeMine(ID P)}
         %  {System.showInfo '                         MISSILE REMOVED'}
         [] sonar then
