@@ -128,7 +128,19 @@ define
           {Send PortWindow removeMine(ID P)}
         %  {System.showInfo '                         MISSILE REMOVED'}
         [] sonar then
-          {System.showInfo 'Sonar Launche by '#ID.name}
+
+          for I in 1..Input.nbPlayer do
+            thread
+              local Answer IDPlayer in
+                {Send Players.I sayPassingSonar(IDPlayer Answer)}
+                {Wait Answer}
+                if IDPlayer \= nil andthen IDPlayer.id \= ID.id then
+                  {Send Players.Idnum sayAnswerSonar(IDPlayer Answer)}
+                end
+              end
+            end
+          end
+
         [] drone(row:X) then
           {System.showInfo 'Drone Launched on row '#X#' by '#ID.name}
         [] drone(column:Y) then

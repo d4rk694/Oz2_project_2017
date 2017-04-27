@@ -245,7 +245,9 @@ define
 
 	%TODO test with value +1
 	fun{GenerateItem State} List Value Charged in
-		List = [mine missile sonar drone]
+%		List = [mine missile sonar drone]
+		List = [sonar sonar sonar sonar]
+
 		Value = {GetRandomElem List 4}
 
 		case Value of mine then
@@ -441,7 +443,7 @@ end %fun
 
 				else
 					FireItem = ItemReady.val
-					%	{System.showInfo '   | ItemReady != nil '}
+					{System.showInfo ' Sonar ready ? ' #FireItem}
 				end
 				if ItemReady.item == mine then
 					NewState2 = {StateModification State 'fireMine' ItemReady.val}
@@ -560,13 +562,27 @@ end %fun
 				{TreatStream T State}
 
 				%TODO
-			[]sayPassingSonar(?ID ?Answer)|T then NewState in
-				%ID = State.idPlayer
+			[]sayPassingSonar(?ID ?Answer)|T then NewState P in
+				%
 
-				NewState = {StateModification State nil nil}
-				{TreatStream T NewState}
+				if ({OS.rand } mod 2)  == 0 then
+					%X correct
+					P = pt(x:_ y:_)
+					P.x = State.currentPosition.x
+					P.y= ({OS.rand} mod Input.nColumn)+1
+				else
+					%Y correct
+					P = pt(x:_ y:_)
+					P.y = State.currentPosition.y
+					P.x= ({OS.rand} mod Input.nRow)+1
+				end
+				ID = State.idPlayer
+				Answer = P
+
+				{TreatStream T State}
 
 			[]sayAnswerSonar(ID Answer)|T then NewState in
+				{System.showInfo '***********SONAR '#ID.name #'At position x: '#Answer.x #'y: '#Answer.y}
 				{TreatStream T State}
 
 
