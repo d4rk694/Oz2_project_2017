@@ -77,18 +77,18 @@ in
     NRow = 7
     NColumn = 7
     Map = [
-      [0 0 0 0 0 1 1]
-      [0 0 0 0 0 1 0]
-      [0 0 1 0 0 0 0]
+      [0 0 0 0 0 0 1]
+      [0 1 1 0 0 1 1]
       [0 0 1 0 0 1 1]
+      [0 0 0 0 0 0 1]
       [0 0 1 0 0 1 1]
-      [0 0 1 0 0 0 0]
-      [0 0 1 0 0 0 1]]
+      [1 0 0 0 0 0 0]
+      [1 0 1 0 0 0 1]]
 
 %%%% Players description %%%%
 
    NbPlayer = 4
-   Players = [basicAI basicAI basicAI basicAI]
+   Players = [random random random random]
    Colors = [red blue green yellow white black]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
