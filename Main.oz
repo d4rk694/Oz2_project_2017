@@ -12,7 +12,7 @@ define
 	Players
   PlayersState
   Round
-
+  ListDead = _|nil
 	fun{GetElementInList L I}
 	   case L of H|T then
 	      if I == 1 then
@@ -24,7 +24,7 @@ define
 	end
 
   fun{GenerateInitialState}
-    info(turnLeftSurface:_)
+    info(turnLeftSurface:_ )
   end
 
   fun{StateModification State Value Result} NewStatePlayer in
@@ -55,12 +55,13 @@ define
       if(Direction == surface) then
       %  {System.showInfo '     Player'#Idnum #' : Moved to surface'}
         {Send PortWindow surface(ID)}
+        {Broadcast ID saySurface(ID)}
         RetVal = true
       else
       %{System.showInfo '     Player'#Idnum #' : Moved to '#Direction}
+        {Broadcast ID sayMove(ID Direction)}
         RetVal = false
       end
-      %TODO broadcast to all players
       RetVal
   end
 
@@ -85,33 +86,72 @@ define
     thread
       %TODO broadcast
       {Wait FireItem}
-      case FireItem
-      of nil then
-       {System.showInfo 'No Item Fired'}
-      [] mine(P) then
-        {Send PortWindow putMine(ID P)}
+      if ID \= nil then
+        case FireItem
+        of nil then
+         {System.showInfo 'No Item Fired'}
+        [] mine(P) then
+          {Send PortWindow putMine(ID P)}
+          {Broadcast ID sayMinePlaced(ID)}
+        [] missile(P) then
+        %  {System.showInfo '                         MISSILE'}
+          /*thread Message in
+            {Broadcast ID sayMineExplode(ID P ?Message)}
+            {Wait Message}
+          end*/
+          for I in 1..Input.nbPlayer do
+            thread
+              local Message in
+                {Send Players.I sayMissileExplode(ID P Message)}
+                {Wait Message}
+                case Message
+                of nil then
+                  skip
+                [] sayDeath(PlayerId) then
+                  if PlayerId \= nil then
+                    {System.showInfo '********Player dead : '#PlayerId.name}
+                    {Send PortWindow removePlayer(PlayerId)}
+                  end
 
-      [] missile(P) then
-      %  {System.showInfo '                         MISSILE'}
-        {Send PortWindow explosion(ID P)}
-        {Delay 1000}
-        {Send PortWindow removeMine(ID P)}
-      %  {System.showInfo '                         MISSILE REMOVED'}
-      [] sonar then
-        {System.showInfo 'Sonar Launche by '#ID.name}
-      [] drone(row:X) then
-        {System.showInfo 'Drone Launched on row '#X#' by '#ID.name}
-      [] drone(column:Y) then
-        {System.showInfo 'Drone Launched on column '#Y#' by '#ID.name}
-      else
-       {System.showInfo 'Not an item recognized'}
-      end
-      %{System.showInfo '### FIRED : MOTHAFUCKER!!!!!!'}
+                [] sayDamageTaken(PlayerId DamageTaken LifeLeft) then
+                  if PlayerId \= nil then
+                    {System.showInfo '**' #PlayerId.name #' has take '#DamageTaken #' Damages, Lifeleft : '#LifeLeft }
+                    {Send PortWindow lifeUpdate(PlayerId LifeLeft)}
+                  end
+                end
+                {Broadcast ID Message}
+              end
+            end
+          end
+          {Send PortWindow explosion(ID P)}
+          {Delay 1000}
+          {Send PortWindow removeMine(ID P)}
+        %  {System.showInfo '                         MISSILE REMOVED'}
+        [] sonar then
+          {System.showInfo 'Sonar Launche by '#ID.name}
+        [] drone(row:X) then
+          {System.showInfo 'Drone Launched on row '#X#' by '#ID.name}
+        [] drone(column:Y) then
+          {System.showInfo 'Drone Launched on column '#Y#' by '#ID.name}
+        else
+         {System.showInfo 'Not an item recognized'}
+        end
+        %{System.showInfo '### FIRED : MOTHAFUCKER!!!!!!'}
+      end % case FireItem
+      %If KindItem binded => broadcast
     end
-    %If KindItem binded => broadcast
   end
 
-  %proc{Broadcast ID Message }
+
+  proc{Broadcast ID Message }
+    for I in 1..Input.nbPlayer do
+      if ID == nil orelse I == ID.id then
+        skip
+      else
+        {Send Players.I Message}
+      end
+    end
+  end
 
   %TODO broadcast
   proc{BlowMine Idnum} ID Mine in
@@ -181,6 +221,18 @@ define
     {StartTurnByTurn NewState N}
   end
 
+
+  fun{CountDead L}
+     case L of nil then
+        0
+     []H|T then
+        if {IsDet H} then
+  	 {CountDead T} + 1
+        else
+  	 {CountDead T}
+        end
+     end
+  end
 
 
 

@@ -135,7 +135,7 @@ define
 	%Param Value = the attribute to update with the value of Result
 	fun{StateModification State Value Result} NewState PositionMine in
 		NewState = {GenerateInitialState}
-		NewState.idPlayer = State.idPlayer
+
 
 		if Value == 'initPath' then
 			NewState.currentPosition = Result
@@ -158,8 +158,10 @@ define
 
 		if NewState.lives > 0 then
 			NewState.isAlive = true
+			NewState.idPlayer = State.idPlayer
 		else
 			NewState.isAlive = false
+			NewState.idPlayer = nil
 		end
 
 		if Value == 'chargeItem' then
@@ -222,7 +224,7 @@ define
 		if Value == 'fireMine' then
 			NewState.listMine = Result|State.listMine
 			NewState.nbrMinePlaced = State.nbrMinePlaced + 1
-			{System.showInfo 'Mine Added'}
+			%{System.showInfo 'Mine Added'}
 		else
 			if Value == 'blowMine' then
 					NewState.nbrMinePlaced = State.nbrMinePlaced - 1
@@ -296,8 +298,8 @@ define
 		P = {GetNewPosition Direction CurrentP}
 
 		if ({FindPointInList Path P} == yes orelse {CanMoveTo P.x P.y Input.map} == no) then
-			{System.showInfo '||   || Point already visited : pt(x:'#P.x#' y:'#P.y#')'}
-			{PrintPath Path}
+			%{System.showInfo '||   || Point already visited : pt(x:'#P.x#' y:'#P.y#')'}
+			%{PrintPath Path}
 
 			ReturnValue = {PositionToFire CurrentP N Min Max Path}
 
@@ -420,18 +422,18 @@ end %fun
 				{TreatStream T NewState}
 
 			[] chargeItem(?ID ?KindItem)|T then NewItemTuple NewState in
-				{System.showInfo 'chargeItem()'}
+				%{System.showInfo 'chargeItem()'}
 				ID = State.idPlayer
 				NewItemTuple = {GenerateItem State}
 				NewState = {StateModification State 'chargeItem' NewItemTuple.item}
 				if(NewItemTuple.isCharged) then
 						KindItem = NewItemTuple.item
 				end
-				{System.showInfo '   | Charged :  Mine : '#NewState.counterMine#'  Missile : '#NewState.counterMissile#'  Drone : '#NewState.counterDrone#' Sonar'#NewState.counterSonar}
+				%{System.showInfo '   | Charged :  Mine : '#NewState.counterMine#'  Missile : '#NewState.counterMissile#'  Drone : '#NewState.counterDrone#' Sonar'#NewState.counterSonar}
 				{TreatStream T NewState}
 
 			[] fireItem(?ID ?FireItem)|T then ItemReady NewState NewState2 Position in
-				{System.showInfo 'fireItem()'}
+				%{System.showInfo 'fireItem()'}
 				ID = State.idPlayer
 				ItemReady = {GetItemReady State}
 				if ItemReady.val == nil then
@@ -443,7 +445,7 @@ end %fun
 				end
 				if ItemReady.item == mine then
 					NewState2 = {StateModification State 'fireMine' ItemReady.val}
-					{System.showInfo ID.name#' placed '#NewState2.nbrMinePlaced#' mines'}
+					%{System.showInfo ID.name#' placed '#NewState2.nbrMinePlaced#' mines'}
 
 				else
 					NewState2 = {StateModification State nil nil}
@@ -456,20 +458,20 @@ end %fun
 
 				%TODO
 			[]fireMine(?ID ?Mine)|T then NewState CurrentM L in
-				{System.showInfo 'fireMine()'}
+				%{System.showInfo 'fireMine()'}
 				CurrentM = {GetRandomElem State.listMine State.nbrMinePlaced}
-				{System.showInfo 'Recoverd an element | MINE placed : '#State.nbrMinePlaced }
+				%{System.showInfo 'Recoverd an element | MINE placed : '#State.nbrMinePlaced }
 				ID = State.idPlayer
 
 				if CurrentM \= nil then
-					{System.showInfo 'Recoverd a Mine'}
+					%{System.showInfo 'Recoverd a Mine'}
 					L = {RemoveElementFrom State.listMine CurrentM}
-					{System.showInfo 'Recoverd List without the mine'}
+					%{System.showInfo 'Recoverd List without the mine'}
 
 					NewState = {StateModification State 'blowMine' L}
 					Mine = CurrentM
 				else
-				{System.showInfo 'Did not recoverd a mine'}
+				%{System.showInfo 'Did not recoverd a mine'}
 
 					NewState = {StateModification State nil nil}
 				end
