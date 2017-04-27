@@ -9,7 +9,7 @@ export
 define
 
 	fun{GenerateInitialState}
-		state(idPlayer:_ currentPosition:_ counterMine:_ counterMissile:_ counterDrone:_ counterSonar: _ path:_ isUnderSurface:_ listMine:_)
+		state(idPlayer:_ currentPosition:_ counterMine:_ counterMissile:_ counterDrone:_ counterSonar: _ path:_ isUnderSurface:_ listMine:_ nbrMinePlaced:_)
 	end
 	%Get a random element From Result, where N is Max index to choose
 	fun{GetRandomElem Result N} I in
@@ -82,7 +82,7 @@ define
 		%		{System.showInfo '  |   GenerateDirection '#State.idPlayer.name}
 		case Move of north then
 			P = pt(x:State.currentPosition.x-1 y:State.currentPosition.y)
-				if (P.x == 0 orelse {CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
+				if ({CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
 					Direction = {GenerateDirection State Map}
 				else
 				Direction = north
@@ -91,21 +91,21 @@ define
 			 Direction = surface
  	 	[] east then
 	 		P = pt(x:State.currentPosition.x y:State.currentPosition.y+1)
-			if(P.y == (Input.nColumn)+1 orelse {CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
+			if({CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
 				Direction = {GenerateDirection State Map}
 			else
 				Direction = east
 			end
 		[] south then
 	 		P = pt(x:State.currentPosition.x+1 y:State.currentPosition.y)
-			if(P.x == (Input.nRow)+1 orelse {CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
+			if({CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
 				Direction = {GenerateDirection State Map}
 			else
 				Direction = south
 			end
 		[] west then
 	 		P = pt(x:State.currentPosition.x y:State.currentPosition.y-1)
-			if(P.y == 0 orelse {CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
+			if({CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
 				Direction = {GenerateDirection State Map}
 			else
 				Direction = west
@@ -133,7 +133,7 @@ define
 
 	%Create a new state based on the previous one
 	%Param Value = the attribute to update with the value of Result
-	fun{StateModification State Value Result} NewState in
+	fun{StateModification State Value Result} NewState PositionMine in
 		NewState = {GenerateInitialState}
 
 		NewState.idPlayer = State.idPlayer
@@ -179,6 +179,7 @@ define
 				if Result == mine then
 					NewState.counterMine = State.counterMine-Input.mine
 					{System.showInfo ' Counter : '#NewState.counterMine}
+					%{System.showInfo 'MinePlaced on the list########################################################'}
 
 				else
 					NewState.counterMine = State.counterMine
@@ -212,6 +213,15 @@ define
 				NewState.counterSonar = State.counterSonar
 				NewState.counterDrone = State.counterDrone
 			end
+		end
+
+		if Value == 'fireMine' then
+			NewState.listMine = Result|State.listMine
+			NewState.nbrMinePlaced = State.nbrMinePlaced + 1
+			{System.showInfo 'Mine Added'}
+		else
+			NewState.nbrMinePlaced = State.nbrMinePlaced
+			NewState.listMine = State.listMine
 		end
 
 		if Value == 'dive' then
@@ -350,6 +360,8 @@ end %fun
 				State.counterMissile = 0
 				State.isUnderSurface = false
 				Position = State.currentPosition
+				State.listMine = nil|nil
+				State.nbrMinePlaced = 0
 				NewState = {StateModification State 'initPath' Position}
 
 		    {TreatStream T NewState}
@@ -385,19 +397,26 @@ end %fun
 				{System.showInfo '   | Charged :  Mine : '#NewState.counterMine#'  Missile : '#NewState.counterMissile#'  Drone : '#NewState.counterDrone#' Sonar'#NewState.counterSonar}
 				{TreatStream T NewState}
 
-			[] fireItem(?ID ?FireItem)|T then ItemReady NewState Position in
+			[] fireItem(?ID ?FireItem)|T then ItemReady NewState NewState2 Position in
 				{System.showInfo 'fireItem()'}
 				ID = State.idPlayer
 				ItemReady = {GetItemReady State}
 				if ItemReady.val == nil then
-				{System.showInfo '   | ItemReady == nil'}
+					{System.showInfo '   | ItemReady == nil'}
 
 				else
 					FireItem = ItemReady.val
-				%	{System.showInfo '   | ItemReady != nil '}
-
+					%	{System.showInfo '   | ItemReady != nil '}
 				end
-				NewState = {StateModification State 'removeItem' ItemReady.item}
+				if ItemReady.item == mine then
+					NewState2 = {StateModification State 'fireMine' ItemReady.val}
+						{System.showInfo ID.name#' placed '#NewState2.nbrMinePlaced#' mines'}
+
+				else
+					NewState2 = {StateModification State nil nil}
+					{System.showInfo 'NewState2 without mine'}
+				end
+				NewState = {StateModification NewState2 'removeItem' ItemReady.item}
 
 				{TreatStream T NewState}
 

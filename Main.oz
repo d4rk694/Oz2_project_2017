@@ -64,7 +64,7 @@ define
       RetVal
   end
 
-  %TODO
+  %TODO broadcast
   proc{ChargeItem Idnum} ID KindItem in
     %{System.showInfo 'Ask ChargeItem'}
     {Send Players.Idnum chargeItem(?ID ?KindItem)}
@@ -76,27 +76,33 @@ define
     %If KindItem CHarged => broadcast
   end
 
-  %TODO
+  %TODO broadcast
   proc{FireItem Idnum} ID FireItem in
-  %  {System.showInfo 'Ask FireItem'}
+      %  {System.showInfo 'Ask FireItem'}
     {Send Players.Idnum fireItem(?ID ?FireItem)}
-  %  {System.showInfo 'Asked FireItem!'}
+    %  {System.showInfo 'Asked FireItem!'}
 
     thread
       %TODO broadcast
       {Wait FireItem}
       case FireItem
       of nil then
-       {System.showInfo 'COucou'}
+       {System.showInfo 'No Item Fired'}
       [] mine(P) then
         {Send PortWindow putMine(ID P)}
 
       [] missile(P) then
         {System.showInfo '                         MISSILE'}
         {Send PortWindow explosion(ID P)}
-        {Delay 3500}
+        {Delay 2000}
         {Send PortWindow removeMine(ID P)}
         {System.showInfo '                         MISSILE REMOVED'}
+      [] sonar then
+        {System.showInfo 'Sonar Launche by '#ID.name}
+      [] drone(row:X) then
+        {System.showInfo 'Drone Launched on row '#X#' by '#ID.name}
+      [] drone(column:Y) then
+        {System.showInfo 'Drone Launched on column '#Y#' by '#ID.name}
       else
        {System.showInfo 'COucou X'}
       end
@@ -105,7 +111,14 @@ define
     %If KindItem binded => broadcast
   end
 
-  proc{BlowMine Idnum}
+  %TODO broadcast
+  proc{BlowMine Idnum} ID Mine in
+    {Send Players.Idnum fireMine(?ID ?Mine)}
+
+    thread
+      {Wait Mine}
+      {System.showInfo 'Mine explosed at position : X:' #Mine.x #' Y:'#Mine.y}
+    end
     skip
   end
 
