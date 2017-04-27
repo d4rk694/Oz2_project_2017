@@ -97,8 +97,8 @@ in
 
    Missile = 5
    Mine = 5
-   Sonar = 1
-   Drone = 5
+   Sonar = 5
+   Drone = 1
 %%%% Distances of placement %%%%
 
    MinDistanceMine = 1

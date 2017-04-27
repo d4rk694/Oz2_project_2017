@@ -246,7 +246,7 @@ define
 	%TODO test with value +1
 	fun{GenerateItem State} List Value Charged in
 %		List = [mine missile sonar drone]
-		List = [sonar sonar sonar sonar]
+		List = [drone drone drone drone]
 
 		Value = {GetRandomElem List 4}
 
@@ -443,7 +443,6 @@ end %fun
 
 				else
 					FireItem = ItemReady.val
-					{System.showInfo ' Sonar ready ? ' #FireItem}
 				end
 				if ItemReady.item == mine then
 					NewState2 = {StateModification State 'fireMine' ItemReady.val}
@@ -559,6 +558,20 @@ end %fun
 				{TreatStream T State}
 
 			[]sayAnswerDrone(Drone ID Answer)|T then NewState in
+				if Answer then
+					case Drone
+					of drone(row:X) then
+						{System.showInfo 'DRONE '#ID.name #' At row: ' #X}
+
+					[] drone(column:Y) then
+						{System.showInfo 'DRONE '#ID.name #' At column: ' #Y}
+					else
+						{System.showInfo 'Problem Drone'}
+					end
+				else
+					{System.showInfo 'DRONE '#ID.name #' not in the range '}
+				end
+
 				{TreatStream T State}
 
 				%TODO

@@ -143,6 +143,17 @@ define
 
         [] drone(row:X) then
           {System.showInfo 'Drone Launched on row '#X#' by '#ID.name}
+          for I in 1..Input.nbPlayer do
+            thread
+              local Answer IDPlayer in
+                {Send Players.I sayPassingDrone(FireItem IDPlayer Answer)}
+                {Wait Answer}
+                if IDPlayer \= nil andthen IDPlayer.id \= ID.id then
+                  {Send Players.Idnum sayAnswerDrone(FireItem IDPlayer Answer)}
+                end
+              end
+            end
+          end
         [] drone(column:Y) then
           {System.showInfo 'Drone Launched on column '#Y#' by '#ID.name}
         else
