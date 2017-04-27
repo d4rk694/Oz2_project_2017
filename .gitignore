@@ -1,3 +1,4 @@
 *.ozf
 *.zip
+inc/img/*
 __MACOSX/*
