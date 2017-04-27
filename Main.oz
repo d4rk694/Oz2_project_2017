@@ -30,7 +30,7 @@ define
   fun{StateModification State Value Result} NewStatePlayer in
 
 
-    {System.showInfo 'Creating state'}
+  %  {System.showInfo 'Creating state'}
     NewStatePlayer={GenerateInitialState}
 
     if Value == turnLeftSurface then
@@ -117,7 +117,8 @@ define
 
     thread
       {Wait Mine}
-      {System.showInfo 'Mine explosed at position : X:' #Mine.x #' Y:'#Mine.y}
+      {Send PortWindow removeMine(ID Mine.1)}
+      {System.showInfo 'Mine explosed at position : X:' #Mine.1.x #' Y:'#Mine.1.y}
     end
     skip
   end

@@ -139,7 +139,7 @@ define
 		NewState.idPlayer = State.idPlayer
 
 		if Value == 'initPath' then
-			{System.showInfo 'initPath'}
+	%		{System.showInfo 'initPath'}
 			NewState.currentPosition = Result
 			NewState.path = Result|nil
 		else
@@ -178,7 +178,7 @@ define
 			if Value == 'removeItem' then
 				if Result == mine then
 					NewState.counterMine = State.counterMine-Input.mine
-					{System.showInfo ' Counter : '#NewState.counterMine}
+					%{System.showInfo ' Counter : '#NewState.counterMine}
 					%{System.showInfo 'MinePlaced on the list########################################################'}
 
 				else
@@ -187,21 +187,21 @@ define
 
 				if Result == missile then
 					NewState.counterMissile = State.counterMissile-Input.missile
-					{System.showInfo ' Counter : '#NewState.counterMissile}
+					%{System.showInfo ' Counter : '#NewState.counterMissile}
 				else
 					NewState.counterMissile = State.counterMissile
 				end
 
 				if Result == drone then
 					NewState.counterDrone = State.counterDrone-Input.drone
-					{System.showInfo ' Counter : '#NewState.counterDrone}
+					%{System.showInfo ' Counter : '#NewState.counterDrone}
 
 				else
 					NewState.counterDrone = State.counterDrone
 				end
 				if Result == sonar then
 					NewState.counterSonar = State.counterSonar-Input.sonar
-					{System.showInfo ' Counter : '#NewState.counterSonar}
+					%{System.showInfo ' Counter : '#NewState.counterSonar}
 
 				else
 					NewState.counterSonar = State.counterSonar
@@ -220,9 +220,17 @@ define
 			NewState.nbrMinePlaced = State.nbrMinePlaced + 1
 			{System.showInfo 'Mine Added'}
 		else
-			NewState.nbrMinePlaced = State.nbrMinePlaced
-			NewState.listMine = State.listMine
+			if Value == 'blowMine' then
+					NewState.nbrMinePlaced = State.nbrMinePlaced - 1
+					NewState.listMine = Result
+			else
+				NewState.nbrMinePlaced = State.nbrMinePlaced
+				NewState.listMine = State.listMine
+			end
+
+
 		end
+
 
 		if Value == 'dive' then
 			NewState.isUnderSurface = Result
@@ -282,25 +290,27 @@ define
 	%TODO
 	%Il faut vérifier que la position ne dépasse pas la map, ne dépasse pas la distance max, ne pas sur une île (fais chier)
 	fun{PositionToFire CurrentP N Min Max Path} ReturnValue List Direction P in
-		{System.showInfo 'PositionToFire '#N}
+		%{System.showInfo 'PositionToFire '#N}
 		List = [north south east west]
 		Direction = {GetRandomElem List 4}
 		P = {GetNewPosition Direction CurrentP}
 
 		if ({FindPointInList Path P} == yes orelse {CanMoveTo P.x P.y Input.map} == no) then
-			{System.showInfo '   | P already visited'}
+			{System.showInfo '||   || Point already visited : pt(x:'#P.x#' y:'#P.y#')'}
+			{PrintPath Path}
+
 			ReturnValue = {PositionToFire CurrentP N Min Max Path}
 
 		else
-			{System.showInfo '   | P NOT visited'}
+			%{System.showInfo '   | P NOT visited'}
 
 			if N < Min then
-			{System.showInfo '   | N < MIN'}
+			%{System.showInfo '   | N < MIN'}
 
 				%TODO CheckPath
 				ReturnValue = {PositionToFire P N+1 Max Min P|Path}
 			elseif N >= Min andthen N < Max then
-				{System.showInfo '   | N >= MIN && N < MAX'}
+				%{System.showInfo '   | N >= MIN && N < MAX'}
 
 				if ({OS.rand} mod 2) == 1 then
 					ReturnValue = P
@@ -308,7 +318,7 @@ define
 					ReturnValue = {PositionToFire P N+1 Max Min P|Path}
 				end
 			else
-				{System.showInfo '   | N >= MAX'}
+				%{System.showInfo '   | N >= MAX'}
 
 					ReturnValue = P
 			end
@@ -317,6 +327,28 @@ define
 		ReturnValue
 	end%fun
 
+	proc{PrintPath L}
+		case L
+			of nil then
+				skip
+			[] H|T then
+			{System.showInfo '||    || pt(x:'#H.x#' y:'#H.y#')'}
+		end
+		skip
+	end
+
+	fun{RemoveElementFrom L E}
+		case L
+		of nil then
+		 	nil
+		[] H|T then
+			if H == E then
+				T
+			else
+			H|{RemoveElementFrom T E}
+			end
+		end
+	end
 
 
 	fun{DistanceFrom P1 P2}
@@ -361,7 +393,7 @@ end %fun
 				State.isUnderSurface = false
 				Position = State.currentPosition
 				State.listMine = nil|nil
-				State.nbrMinePlaced = 0
+				State.nbrMinePlaced = 1
 				NewState = {StateModification State 'initPath' Position}
 
 		    {TreatStream T NewState}
@@ -410,20 +442,36 @@ end %fun
 				end
 				if ItemReady.item == mine then
 					NewState2 = {StateModification State 'fireMine' ItemReady.val}
-						{System.showInfo ID.name#' placed '#NewState2.nbrMinePlaced#' mines'}
+					{System.showInfo ID.name#' placed '#NewState2.nbrMinePlaced#' mines'}
 
 				else
 					NewState2 = {StateModification State nil nil}
-					{System.showInfo 'NewState2 without mine'}
+					%{System.showInfo 'NewState2 without mine'}
 				end
-				NewState = {StateModification NewState2 'removeItem' ItemReady.item}
+					NewState = {StateModification NewState2 'removeItem' ItemReady.item}
 
 				{TreatStream T NewState}
 
 
 				%TODO
-			[]fireMine(?ID ?Mine)|T then NewState in
-				NewState = {StateModification State nil nil}
+			[]fireMine(?ID ?Mine)|T then NewState CurrentM L in
+				{System.showInfo 'fireMine()'}
+				CurrentM = {GetRandomElem State.listMine State.nbrMinePlaced}
+				{System.showInfo 'Recoverd an element | MINE placed : '#State.nbrMinePlaced }
+				ID = State.idPlayer
+
+				if CurrentM \= nil then
+					{System.showInfo 'Recoverd a Mine'}
+					L = {RemoveElementFrom State.listMine CurrentM}
+					{System.showInfo 'Recoverd List without the mine'}
+
+					NewState = {StateModification State 'blowMine' L}
+					Mine = CurrentM
+				else
+				{System.showInfo 'Did not recoverd a mine'}
+
+					NewState = {StateModification State nil nil}
+				end
 				{TreatStream T NewState}
 
 			[]isSurface(?ID ?Answer)|T then NewState in
