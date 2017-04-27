@@ -245,9 +245,7 @@ define
 
 	%TODO test with value +1
 	fun{GenerateItem State} List Value Charged in
-%		List = [mine missile sonar drone]
-		List = [drone drone drone drone]
-
+		List = [mine missile sonar drone]
 		Value = {GetRandomElem List 4}
 
 		case Value of mine then

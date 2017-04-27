@@ -12,7 +12,6 @@ define
 	Players
   PlayersState
   Round
-  ListDead = _|nil
 	fun{GetElementInList L I}
 	   case L of H|T then
 	      if I == 1 then
@@ -28,9 +27,7 @@ define
   end
 
   fun{StateModification State Value Result} NewStatePlayer in
-
-
-  %  {System.showInfo 'Creating state'}
+    %  {System.showInfo 'Creating state'}
     NewStatePlayer={GenerateInitialState}
 
     if Value == turnLeftSurface then
@@ -72,19 +69,20 @@ define
     thread
       %TODO broadcast
       {Wait KindItem}
+      if ID \= nil then
+        {Broadcast ID sayCharge(ID KindItem)}
+      end
     %  {System.showInfo '###'#KindItem}
     end
     %If KindItem CHarged => broadcast
   end
 
-  %TODO broadcast
   proc{FireItem Idnum} ID FireItem in
       %  {System.showInfo 'Ask FireItem'}
     {Send Players.Idnum fireItem(?ID ?FireItem)}
     %  {System.showInfo 'Asked FireItem!'}
 
     thread
-      %TODO broadcast
       {Wait FireItem}
       if ID \= nil then
         case FireItem
@@ -95,10 +93,6 @@ define
           {Broadcast ID sayMinePlaced(ID)}
         [] missile(P) then
         %  {System.showInfo '                         MISSILE'}
-          /*thread Message in
-            {Broadcast ID sayMineExplode(ID P ?Message)}
-            {Wait Message}
-          end*/
           for I in 1..Input.nbPlayer do
             thread
               local Message in
@@ -161,7 +155,6 @@ define
         end
         %{System.showInfo '### FIRED : MOTHAFUCKER!!!!!!'}
       end % case FireItem
-      %If KindItem binded => broadcast
     end
   end
 
@@ -176,7 +169,6 @@ define
     end
   end
 
-  %TODO broadcast
   proc{BlowMine Idnum} ID Mine in
     {Send Players.Idnum fireMine(?ID ?Mine)}
 
@@ -184,6 +176,30 @@ define
       {Wait Mine}
       {Send PortWindow removeMine(ID Mine.1)}
       {Send PortWindow explosion(ID Mine.1)}
+      for I in 1..Input.nbPlayer do
+        thread
+          local Message in
+            {Send Players.I sayMineExplode(ID Mine.1 Message)}
+            {Wait Message}
+            case Message
+            of nil then
+              skip
+            [] sayDeath(PlayerId) then
+              if PlayerId \= nil then
+                {System.showInfo '********Player dead : '#PlayerId.name}
+                {Send PortWindow removePlayer(PlayerId)}
+              end
+
+            [] sayDamageTaken(PlayerId DamageTaken LifeLeft) then
+              if PlayerId \= nil then
+                {System.showInfo '**' #PlayerId.name #' has take '#DamageTaken #' Damages, Lifeleft : '#LifeLeft }
+                {Send PortWindow lifeUpdate(PlayerId LifeLeft)}
+              end
+            end
+            {Broadcast ID Message}
+          end
+        end
+      end
       {Delay 1000}
       {Send PortWindow removeMine(ID Mine.1)}
       {System.showInfo 'Mine explosed at position : X:' #Mine.1.x #' Y:'#Mine.1.y}
@@ -198,30 +214,24 @@ define
       local TurnToSurface in
         {Delay Input.thinkMin}
         {System.showInfo 'turn for player '#J}
-        %  {MovePlayers J}
 
         %check if submarine is under the surface
           %if first round or previous rounds the player is at the surface => send Dive
 
         % 1.
         if State.J.turnLeftSurface == 0 then
-    %      {System.showInfo '   Player'#J #' : He can play'}
           % 2.
           {Send Players.J dive}
           % 3. The broadcast (5.) is done in the proc MovePlayers
           if {MovePlayers J} then
-            % 4. TODO Change in the state the value of the turnLeftSurface
-            %{System.showInfo 'Surface for '#Input.turnSurface #' lap'}
+            % 4.
             TurnToSurface=Input.turnSurface - 1
             %We go derectly to 9. by skiping the else statement
           else
-            %{System.showInfo '      Player'#J #' : Continue to play after moving'}
             % 6.
             {ChargeItem J}
-
             % 7.
             {FireItem J}
-
             % 8.
             {BlowMine J}
             TurnToSurface=State.J.turnLeftSurface
@@ -230,20 +240,44 @@ define
 
         % 9. Ending turn by decreasing the turnLeftSurface if > 0
         if State.J.turnLeftSurface > 0 then
-          %{System.showInfo 'Change State to skip some turn'}
           NewState.J={StateModification State.J turnLeftSurface (State.J.turnLeftSurface - 1)}
-      else
-          %{System.showInfo 'Create new state'}
+        else
           NewState.J={StateModification State.J turnLeftSurface TurnToSurface}
         end
-
-    %    {System.showInfo '   || turnLeftSurface : '# NewState.J.turnLeftSurface}
       end %end local
     end %end foreach player
 
     {StartTurnByTurn NewState N}
   end
 
+  proc {StartSimultaneous PlayerNum} WaitingTime in
+    {System.showInfo '-----------------------------------Start simultaneous for player '#PlayerNum}
+    WaitingTime = ({OS.rand} mod 500)
+    % 1. send dive Message
+    {Send Players.PlayerNum dive}
+    % 2. delay Thinking
+    {Delay WaitingTime}
+    % 3. choose direction
+    if {MovePlayers PlayerNum} then % 5. broadcast direction done in MovePlayers
+      % 4. if direction == surface , delay and go back 1.
+      {Delay (Input.turnSurface * 1000)}
+    else
+      % 6. delay Thinking
+      {Delay WaitingTime}
+      % 7 charge Item and broadcast if ready
+      {ChargeItem PlayerNum}
+      % 8 delay Thinking
+      {Delay WaitingTime}
+      % 9 fire item and broadcast
+      {FireItem PlayerNum}
+      % 10 delay Thinking
+      {Delay WaitingTime}
+      % 11. explose mine and broadcast
+      {BlowMine PlayerNum}
+    end
+    % 12. go back 1.
+    {StartSimultaneous PlayerNum}
+  end
 
   fun{CountDead L}
      case L of nil then
@@ -281,8 +315,11 @@ in
   if(Input.isTurnByTurn) then
     {StartTurnByTurn PlayersState Input.nbPlayer}
   else
-    {System.showInfo 'simultaneous game not implemented yet!'}
-    skip
+    for I in 1..Input.nbPlayer do
+      thread
+        {StartSimultaneous I}
+      end
+    end
   end
 
 end
