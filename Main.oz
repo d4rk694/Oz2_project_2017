@@ -128,10 +128,10 @@ define
     skip
   end
 
-  proc{StartTurnByTurn State} NewState  in %State foreach player State(1:(Surfaceturn:0 )
+  proc{StartTurnByTurn State N} NewState  in %State foreach player State(1:(Surfaceturn:0 )
     %foreach players
     NewState = {MakeTuple statePlayers Input.nbPlayer}
-    for J in 1..Input.nbPlayer do
+    for J in 1..N do
       local TurnToSurface in
         {Delay Input.thinkMin}
         {System.showInfo 'turn for player '#J}
@@ -178,8 +178,10 @@ define
       end %end local
     end %end foreach player
 
-    {StartTurnByTurn NewState}
+    {StartTurnByTurn NewState N}
   end
+
+
 
 
 in
@@ -202,7 +204,7 @@ in
   end
 
   if(Input.isTurnByTurn) then
-    {StartTurnByTurn PlayersState}
+    {StartTurnByTurn PlayersState Input.nbPlayer}
   else
     {System.showInfo 'simultaneous game not implemented yet!'}
     skip

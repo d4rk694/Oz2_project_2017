@@ -47,6 +47,9 @@ in
 
 %%%% Description of the map %%%%
 
+
+
+   /*
    NRow = 10
    NColumn = 10
 
@@ -59,7 +62,17 @@ in
 	  [0 0 0 1 0 0 1 1 0 0]
 	  [0 0 1 1 0 0 1 0 0 0]
 	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]]
+	  [0 0 0 0 0 0 0 0 0 0]]*/
+
+
+  NRow = 5
+  NColumn = 5
+  Map = [
+    [0 0 0 0 0 ]
+ 	  [0 0 0 0 0 ]
+ 	  [0 0 0 1 1 ]
+ 	  [0 0 1 1 0 ]
+ 	  [0 0 0 0 0 ]]
 
 %%%% Players description %%%%
 
@@ -90,7 +103,7 @@ in
 
    MinDistanceMine = 1
    MaxDistanceMine = 2
-   MinDistanceMissile = 2 
+   MinDistanceMissile = 2
    MaxDistanceMissile = 4
 
 
