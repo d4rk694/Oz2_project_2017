@@ -252,10 +252,10 @@ define
 			Value = {GetRandomElem List 3}
 		else
 			% 30% sonar, missile, mine and 10% drone
-			/*List = [mine mine mine missile missile missile sonar sonar sonar drone]
-			Value = {GetRandomElem List 10}*/
-			List = [sonar sonar sonar]
-			Value = {GetRandomElem List 3}
+			List = [mine mine mine missile missile missile sonar sonar sonar drone]
+			Value = {GetRandomElem List 10}
+			%List = [sonar sonar sonar]
+			%Value = {GetRandomElem List 3}
 		end
 
 		case Value of mine then

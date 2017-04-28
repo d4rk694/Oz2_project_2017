@@ -193,7 +193,7 @@ define
       {Wait Mine}
       {Send PortWindow removeMine(ID Mine.1)}
       {Send PortWindow explosion(ID Mine.1)}
-
+        
       for I in 1..Input.nbPlayer do
         thread
           local Message in

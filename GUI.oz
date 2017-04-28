@@ -109,7 +109,7 @@ in
           of submarine then
           Img_Submarine_green
           [] nuke then
-          Img_Submarine_green
+          Img_Missile_green
         end
     end
   end

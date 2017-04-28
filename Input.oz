@@ -1,4 +1,6 @@
 functor
+import
+    OS
 export
    isTurnByTurn:IsTurnByTurn
    nRow:NRow
@@ -39,6 +41,11 @@ define
    MaxDistanceMine
    MinDistanceMissile
    MaxDistanceMissile
+
+   GenerateList
+   GenerateMap
+   GetRandomElem
+   GetElementInList
 in
 
 %%%% Style of game %%%%
@@ -47,8 +54,55 @@ in
 
 %%%% Description of the map %%%%
 
+  NRow = 10
+  NColumn = 10
 
+  fun{GetRandomElem Result N} I in
+		I = ({OS.rand} mod N) + 1
+		{GetElementInList Result I}
+	end
 
+	%Get the I th element of L
+	fun{GetElementInList L I}
+		case L of H|T then
+    	if I == 1 then
+    		H
+      else
+	      {GetElementInList T I-1}
+      end
+		[] nil then
+			nil
+   	end
+	end
+
+  fun{GenerateList L I}
+    if I == 0 then
+      L
+    else
+      {GenerateList {GetRandomElem [0 0 0 0 0 1] 6}|L I-1}
+    end
+  end
+
+  fun{GenerateMap L Nr Nc}
+    if Nr == 0 then
+      L
+    else
+      {GenerateList nil Nc}|{GenerateMap L Nr-1 Nc}
+    end
+  end
+
+  /*Map = [0 0 0 0 0 0 0 0 0 0]|
+   [0 0 0 0 0 0 0 0 0 0]|
+   [0 0 0 1 1 0 0 0 0 0]|
+   [0 0 1 1 0 0 1 0 0 0]|
+   [0 0 0 0 0 0 0 0 0 0]|
+   [0 0 0 0 0 0 0 0 0 0]|
+   [0 0 0 1 0 0 1 1 0 0]|
+   [0 0 1 1 0 0 1 0 0 0]|
+   [0 0 0 0 0 0 0 0 0 0]|
+   [0 0 0 0 0 0 0 0 0 0]|nil*/
+
+  Map={GenerateMap nil NRow NColumn}
 
    /*NRow = 10
    NColumn = 10
@@ -65,14 +119,16 @@ in
 	  [0 0 0 0 0 0 0 0 0 0]]*/
 
 
-  NRow = 5
+  /*NRow = 5
   NColumn = 5
+
+
   Map = [
     [0 0 0 0 0 ]
  	  [0 0 0 0 0 ]
  	  [0 0 1 0 0 ]
  	  [0 0 0 0 0 ]
- 	  [0 0 0 0 0 ]]
+ 	  [0 0 0 0 0 ]]*/
 
     /*NRow = 7
     NColumn = 7
