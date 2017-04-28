@@ -9,7 +9,7 @@ export
 define
 
 	fun{GenerateInitialState}
-		state(idPlayer:_ lives:_ isAlive:_ currentPosition:_ counterMine:_ counterMissile:_ counterDrone:_ counterSonar: _ path:_ isUnderSurface:_ listMine:_ nbrMinePlaced:_)
+		state(idPlayer:_ lives:_ isAlive:_ currentPosition:_ counterMine:_ counterMissile:_ counterDrone:_ counterSonar: _ path:_ isUnderSurface:_ listMine:_ nbrMinePlaced:_ closestEnemyPos:_)
 	end
 	%Get a random element From Result, where N is Max index to choose
 	fun{GetRandomElem Result N} I in
@@ -69,47 +69,43 @@ define
 		Value
 	end
 
-	fun{GenerateDirection State Map Direction}
+	fun{GenerateDirection State Map}
 		P
- 		Move
  		Direction
-		ListDirection
 		in
-
-		%Big list to have only 11% chance to go on the surface
-		ListDirection = [north south east west surface north south east west north south east west north south east west surface]
-		Move = LastDirection%{GetRandomElem ListDirection 18}
-		case Move of north then
-			P = pt(x:State.currentPosition.x-1 y:State.currentPosition.y)
-				if ({CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
-					Direction = {GenerateDirection State Map east}
+		P = State.currentPosition
+		if State.closestEnemyPos \= nil then
+			if ({OS.rand} mod 2) == 1 then
+				%go to x
+				if (State.currentPosition.x - State.closestEnemyPos.x) < 0 then
+					Direction = north
 				else
+					Direction = south
+				end
+			else
+				%go to y
+				if (State.currentPosition.y - State.closestEnemyPos.y) < 0 then
+					Direction = west
+				else
+					Direction = east
+				end
+			end
+		else
+			if ({CanMoveTo P.x-1 P.y Map} == yes andthen {FindPointInList State.path pt(x:P.x-1 y:P.y)} == no) then
 				Direction = north
-			end
- 	 	[] east then
-	 		P = pt(x:State.currentPosition.x y:State.currentPosition.y+1)
-			if({CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
-				Direction = {GenerateDirection State Map south}
-			else
+			elseif ({CanMoveTo P.x P.y+1 Map} == yes andthen {FindPointInList State.path pt(x:P.x y:P.y+1)} == no) then
 				Direction = east
-			end
-		[] south then
-	 		P = pt(x:State.currentPosition.x+1 y:State.currentPosition.y)
-			if({CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
-				Direction = {GenerateDirection State Map west}
-			else
+			elseif ({CanMoveTo P.x+1 P.y Map} == yes andthen {FindPointInList State.path pt(x:P.x+1 y:P.y)} == no) then
 				Direction = south
-			end
-		[] west then
-	 		P = pt(x:State.currentPosition.x y:State.currentPosition.y-1)
-			if({CanMoveTo P.x P.y Map} == no orelse {FindPointInList State.path P} == yes) then
-				Direction = {GenerateDirection State Map north}
-			else
+			elseif ({CanMoveTo P.x P.y-1 Map} == yes andthen {FindPointInList State.path pt(x:P.x y:P.y-1)} == no) then
 				Direction = west
-			end %else
-	 end %case
-	 Direction
-	end %fun
+			else
+				Direction = surface
+			end
+		end
+
+	 	Direction
+	end
 
 	fun {GetNewPosition Direction CurrentPosition}
 		Position
@@ -238,12 +234,27 @@ define
 		else
 			NewState.isUnderSurface = State.isUnderSurface
 		end
+
+		if Value == 'changeEnemy' then
+			{System.showInfo '-------Update closestEnemyPos Value'}
+			NewState.closestEnemyPos = Result
+		else
+			NewState.closestEnemyPos = State.closestEnemyPos
+		end
 		NewState
 	end
-
+	%TODO change the list when postion sonar in state received
 	fun{GenerateItem State} List Value Charged in
-		List = [mine missile sonar drone]
-		Value = {GetRandomElem List 4}
+		if State.closestEnemyPos \= nil then
+			{System.showInfo '----No More Sonar'}
+			% 66% missile and 33% mine
+			List = [missile missile mine]
+			Value = {GetRandomElem List 3}
+		else
+			% 30% sonar, missile, mine and 10% drone
+			List = [mine mine mine missile missile missile sonar sonar sonar drone]
+			Value = {GetRandomElem List 10}
+		end
 
 		case Value of mine then
 				if(State.counterMine+1 >= Input.mine) then Charged = true end
@@ -263,28 +274,41 @@ define
 		info(item:Value isCharged:Charged)
 	end
 
-	fun{GetItemReady State} P in
-		if(State.counterMissile >= Input.missile) then
-			P={PositionToFire State.currentPosition 0 Input.minDistanceMissile Input.maxDistanceMissile nil}
-			info(item:missile val:missile(P))
-		elseif (State.counterSonar >= Input.sonar) then
-			info(item:sonar val:sonar)
-		elseif (State.counterMine >= Input.mine) then
-		P={PositionToFire State.currentPosition 0 Input.minDistanceMine Input.maxDistanceMine nil}
-			info(item:mine val:mine(P))
-		elseif (State.counterDrone >= Input.drone) then
-			if ({OS.rand} mod 2) == 1 then
-				%row x
-				info(item:drone val:drone(row:({OS.rand} mod Input.nRow +1 )))
-			else
-				%column y
-				info(item:drone val:drone(column:({OS.rand} mod Input.nColumn +1 )))
+	fun{GetItemReady State} P D in
+		if State.closestEnemyPos \= nil then
+			D = {DistanceFrom State.closestEnemyPos State.currentPosition}
+			if D >= Input.minDistanceMissile andthen D =< Input.maxDistanceMissile andthen State.counterMissile >= Input.missile then
+				% Missile can touch the point & it's ready
+				info(item:missile val:missile(State.closestEnemyPos) firedOnPos:true)
+			elseif (State.counterMine >= Input.mine) then
+				%Place a mine if ready
+				P={PositionToFire State.currentPosition 0 Input.minDistanceMine Input.maxDistanceMine nil}
+				info(item:mine val:mine(P) firedOnPos:false)
 			end
 		else
-			info(item:nil val:nil)
-		end
+			if (State.counterSonar >= Input.sonar) then
+				info(item:sonar val:sonar firedOnPos:false)
+			elseif(State.counterMissile >= Input.missile) then
+				P={PositionToFire State.currentPosition 0 Input.minDistanceMissile Input.maxDistanceMissile nil}
+				info(item:missile val:missile(P) firedOnPos:false)
+			elseif (State.counterMine >= Input.mine) then
+				P={PositionToFire State.currentPosition 0 Input.minDistanceMine Input.maxDistanceMine nil}
+				info(item:mine val:mine(P) firedOnPos:false)
+			elseif (State.counterDrone >= Input.drone) then
+				if ({OS.rand} mod 2) == 1 then
+					%row x
+					info(item:drone val:drone(row:({OS.rand} mod Input.nRow +1)) firedOnPos:false)
+				else
+					%column y
+					info(item:drone val:drone(column:({OS.rand} mod Input.nColumn +1)) firedOnPos:false)
+				end
+			else
+				info(item:nil val:nil firedOnPos:false)
+			end%end check counter
+		end%end else 1st if
+		%info(item:nil val:nil)
 	end
-
+	%TODO distance the closed position of an enemy in state
 	fun{PositionToFire CurrentP N Min Max Path} ReturnValue List Direction P in
 		List = [north south east west]
 		Direction = {GetRandomElem List 4}
@@ -377,6 +401,7 @@ end %fun
 				Position = State.currentPosition
 				State.listMine = nil|nil
 				State.nbrMinePlaced = 1
+				State.closestEnemyPos = nil
 				NewState = {StateModification State 'initPath' Position}
 
 		    {TreatStream T NewState}
@@ -411,7 +436,7 @@ end %fun
 				%{System.showInfo '   | Charged :  Mine : '#NewState.counterMine#'  Missile : '#NewState.counterMissile#'  Drone : '#NewState.counterDrone#' Sonar'#NewState.counterSonar}
 				{TreatStream T NewState}
 
-			[] fireItem(?ID ?FireItem)|T then ItemReady NewState NewState2 Position in
+			[] fireItem(?ID ?FireItem)|T then ItemReady NewState NewState2 NewState3 Position in
 				%{System.showInfo 'fireItem()'}
 				ID = State.idPlayer
 				ItemReady = {GetItemReady State}
@@ -424,8 +449,13 @@ end %fun
 					NewState2 = {StateModification State nil nil}
 				end
 				NewState = {StateModification NewState2 'removeItem' ItemReady.item}
+				if ItemReady.firedOnPos then
+					NewState3 = {StateModification NewState2 'changeEnemy' nil}
+				else
+					NewState3 = {StateModification NewState2 nil nil}
+				end
 
-				{TreatStream T NewState}
+				{TreatStream T NewState3}
 
 			[]fireMine(?ID ?Mine)|T then NewState CurrentM L in
 				%{System.showInfo 'fireMine()'}
@@ -574,8 +604,9 @@ end %fun
 			[]sayAnswerSonar(ID Answer)|T then NewState in
 				if ID \= nil then
 					{System.showInfo '[RADIO] '#ID.name #' has been detected at position '#Answer.x #'-'#Answer.y#' by the sonar'}
+					NewState = {StateModification State changeEnemy Answer}
 				end
-				{TreatStream T State}
+				{TreatStream T NewState}
 
 
 			[]sayDeath(ID)|T then NewState in

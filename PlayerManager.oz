@@ -13,7 +13,7 @@ in
    fun{PlayerGenerator Kind Color ID}
       case Kind
          of random then {Player051Random.portPlayer Color ID}
-         [] basicAi then {Player051BasicAI.portPlayer Color ID}
+         [] basicAI then {Player051BasicAI.portPlayer Color ID}
       end
    end
 end

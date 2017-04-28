@@ -49,8 +49,8 @@ in
 
 
 
-   /*
-   NRow = 10
+
+   /*NRow = 10
    NColumn = 10
 
    Map = [[0 0 0 0 0 0 0 0 0 0]
@@ -65,30 +65,30 @@ in
 	  [0 0 0 0 0 0 0 0 0 0]]*/
 
 
-  NRow = 5
+  /*NRow = 5
   NColumn = 5
   Map = [
     [0 0 0 0 0 ]
  	  [0 0 0 0 0 ]
  	  [0 0 1 0 0 ]
  	  [0 0 0 0 0 ]
- 	  [0 0 0 0 0 ]]
-/*
+ 	  [0 0 0 0 0 ]]*/
+
     NRow = 7
     NColumn = 7
     Map = [
-      [0 0 0 0 0 0 0]
+      [0 0 0 0 0 1 0]
       [0 1 1 0 0 1 0]
       [0 0 1 0 0 0 0]
-      [0 0 0 0 0 0 0]
+      [0 0 0 0 0 1 1]
       [0 0 1 0 0 1 1]
       [1 0 0 0 0 0 0]
-      [1 1 0 0 0 0 0]]*/
+      [1 1 0 0 1 0 0]]
 
 %%%% Players description %%%%
 
    NbPlayer = 2
-   Players = [random basicAi random random]
+   Players = [random basicAI random random]
    Colors = [red blue green yellow white black]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
