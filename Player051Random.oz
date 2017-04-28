@@ -160,6 +160,8 @@ define
 		else
 			NewState.isAlive = false
 			NewState.idPlayer = nil
+			%{System.showInfo '[DEAD] '#State.idPlayer.name#' at position : '#State.currentPosition.x#'-'#State.currentPosition.y}
+
 		end
 
 		if Value == 'chargeItem' then
