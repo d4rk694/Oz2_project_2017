@@ -245,8 +245,8 @@ define
 	%TODO change the list when postion sonar in state received
 	fun{GenerateItem State} List Value Charged in
 		if State.closestEnemyPos \= nil then
-			% 66% missile and 33% mine
-			List = [missile missile mine]
+			% 50% missile and 25% mine 25% sonar
+			List = [missile missile mine sonar]
 			Value = {GetRandomElem List 3}
 		else
 			% 30% sonar, missile, mine and 10% drone
@@ -598,13 +598,13 @@ end %fun
 					P.x= ({OS.rand} mod Input.nRow)+1
 				end
 				ID = State.idPlayer
-				%Answer = P
-				Answer = State.currentPosition
+				Answer = P
 				{TreatStream T State}
 
 			[]sayAnswerSonar(ID Answer)|T then NewState in
 				if ID \= nil andthen State.idPlayer \= nil then
 					{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name #' has been detected at position '#Answer.x #'-'#Answer.y#' by the sonar'}
+
 					NewState = {StateModification State changeEnemy Answer}
 				end
 				{TreatStream T NewState}

@@ -546,14 +546,14 @@ end %fun
 					if Answer then
 						case Drone
 						of drone(row:X) then
-							{System.showInfo '[RADIO#'#State.idPlayer.idd#'] '#ID.name#' is on the row '#X}
+							{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name#' is on the row '#X}
 						[] drone(column:Y) then
-							{System.showInfo '[RADIO#'#State.idPlayer.idd#'] '#ID.name#' is on the column '#Y}
+							{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name#' is on the column '#Y}
 						else
-							{System.showInfo '[RADIO#'#State.idPlayer.idd#'] Problem Drone'}
+							{System.showInfo '[RADIO#'#State.idPlayer.id#'] Problem Drone'}
 						end
 					else
-						{System.showInfo '[RADIO#'#State.idPlayer.idd#'] '#ID.name#' isn\'t on the range of the drone'}
+						{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name#' isn\'t on the range of the drone'}
 					end
 				end
 

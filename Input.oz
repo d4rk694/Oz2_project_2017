@@ -91,60 +91,13 @@ in
     end
   end
 
-  /*Map = [0 0 0 0 0 0 0 0 0 0]|
-   [0 0 0 0 0 0 0 0 0 0]|
-   [0 0 0 1 1 0 0 0 0 0]|
-   [0 0 1 1 0 0 1 0 0 0]|
-   [0 0 0 0 0 0 0 0 0 0]|
-   [0 0 0 0 0 0 0 0 0 0]|
-   [0 0 0 1 0 0 1 1 0 0]|
-   [0 0 1 1 0 0 1 0 0 0]|
-   [0 0 0 0 0 0 0 0 0 0]|
-   [0 0 0 0 0 0 0 0 0 0]|nil*/
-
   Map={GenerateMap nil NRow NColumn}
 
-   /*NRow = 10
-   NColumn = 10
-
-   Map = [[0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 1 1 0 0 0 0 0]
-	  [0 0 1 1 0 0 1 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 1 0 0 1 1 0 0]
-	  [0 0 1 1 0 0 1 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]
-	  [0 0 0 0 0 0 0 0 0 0]]*/
-
-
-  /*NRow = 5
-  NColumn = 5
-
-
-  Map = [
-    [0 0 0 0 0 ]
- 	  [0 0 0 0 0 ]
- 	  [0 0 1 0 0 ]
- 	  [0 0 0 0 0 ]
- 	  [0 0 0 0 0 ]]*/
-
-    /*NRow = 7
-    NColumn = 7
-    Map = [
-      [0 0 0 0 0 1 0]
-      [0 1 1 0 0 1 0]
-      [0 0 1 0 0 0 0]
-      [0 0 0 0 0 1 1]
-      [0 0 1 0 0 1 1]
-      [1 0 0 0 0 0 0]
-      [1 1 0 0 1 0 0]]*/
 
 %%%% Players description %%%%
 
-   NbPlayer = 3
-   Players = [basicAI basicAI basicAI random]
+   NbPlayer = 4
+   Players = [basicAI random basicAI random]
    %To use the different colors of the player on the game, please do not user another colors
    Colors = [red blue green yellow white black]
 
