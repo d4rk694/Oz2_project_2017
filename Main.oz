@@ -194,28 +194,6 @@ define
       {Send PortWindow removeMine(ID Mine.1)}
       {Send PortWindow explosion(ID Mine.1)}
 
-      /*local P P1 P2 P3 P4 in
-        P = Mine.1
-        P1=pt(x:P.x+1 y:P.y)
-        P2=pt(x:P.x-1 y:P.y)
-        P3=pt(x:P.x y:P.y+1)
-        P4=pt(x:P.x y:P.y-1)
-
-        {Send PortWindow removeMine(ID P)}
-        {Send PortWindow explosion(ID P)}
-        %Send mini explosion to adjacents points
-        {Send PortWindow explosion2(ID P1)}
-        {Send PortWindow explosion2(ID P2)}
-        {Send PortWindow explosion2(ID P3)}
-        {Send PortWindow explosion2(ID P4)}
-        {Delay 750}
-        {Send PortWindow removeMine(ID P)}
-        {Send PortWindow removeMine(ID P1)}
-        {Send PortWindow removeMine(ID P2)}
-        {Send PortWindow removeMine(ID P3)}
-        {Send PortWindow removeMine(ID P4)}
-      end*/
-
       for I in 1..Input.nbPlayer do
         thread
           local Message in
