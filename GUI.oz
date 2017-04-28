@@ -25,6 +25,7 @@ define
    DrawMine
    RemoveMine
    DrawExplosion
+   DrawExplosion2
    DrawPath
    DrawMissile
    GetPicture
@@ -60,6 +61,7 @@ define
 
    Img_Mine   = {QTk.newImage photo(url:MainURL#"/inc/mine.gif")}
    Img_explosion   = {QTk.newImage photo(url:MainURL#"/inc/explosion.gif")}
+   Img_explosion2   = {QTk.newImage photo(url:MainURL#"/inc/explosion2.gif")}
 
 in
 
@@ -275,6 +277,22 @@ in
       end
    end
 
+   fun{DrawExplosion2 Position}
+      fun{$ Grid State}
+    ID HandleScore Handle Mine Path LabelMine HandleMine X Y
+      in
+    guiPlayer(id:ID score:HandleScore submarine:Handle mines:Mine path:Path) = State
+    pt(x:X y:Y) = Position
+    %    LabelMine = label(text:"M" handle:HandleMine borderwidth:5 relief:raised bg:ID.color ipadx:5 ipady:5 image:Img_explosion)
+    LabelMine = label(text:"M" handle:HandleMine bg:c(120 197 249) ipadx:5 ipady:5 image:Img_explosion2)
+
+    {Grid.grid configure(LabelMine row:X+1 column:Y+1)}
+    {HandleMine 'raise'()}
+    {Handle 'raise'()}
+    guiPlayer(id:ID score:HandleScore submarine:Handle mines:mine(HandleMine Position)|Mine path:Path)
+      end
+   end
+
    fun{DrawMissile Position}
       fun{$ Grid State}
     ID HandleScore Handle Mine Path LabelMine HandleMine X Y Img
@@ -398,6 +416,9 @@ in
       [] explosion(ID Position)|T then
     %{TreatStream T Grid State}
     {TreatStream T Grid {StateModification Grid ID State {DrawExplosion Position}}}
+      [] explosion2(ID Position)|T then
+    %{TreatStream T Grid State}
+    {TreatStream T Grid {StateModification Grid ID State {DrawExplosion2 Position}}}
       [] missile(ID Position)|T then
     %{TreatStream T Grid State}
     {TreatStream T Grid {StateModification Grid ID State {DrawMissile Position}}}

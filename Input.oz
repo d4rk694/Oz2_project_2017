@@ -87,13 +87,13 @@ in
 
 %%%% Players description %%%%
 
-   NbPlayer = 4
+   NbPlayer = 3
    Players = [random random random random]
    Colors = [red blue green yellow white black]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
 
-   ThinkMin = 500
+   ThinkMin = 750
    ThinkMax = 3000
 
 %%%% Surface time/turns %%%%

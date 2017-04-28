@@ -104,6 +104,11 @@ define
           {Delay 500}
           {Send PortWindow removeMine(ID P)}
           {Send PortWindow explosion(ID P)}
+          %Send mini explosion to adjacents points
+          /*{Send PortWindow explosion2(ID P)}
+          {Send PortWindow explosion2(ID P)}
+          {Send PortWindow explosion2(ID P)}
+          {Send PortWindow explosion2(ID P)}*/
           {Delay 750}
           {Send PortWindow removeMine(ID P)}
         %  {System.showInfo '                         MISSILE REMOVED'}
