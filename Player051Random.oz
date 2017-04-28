@@ -569,7 +569,7 @@ end %fun
 				end
 				ID = State.idPlayer
 				Answer = P
-				%Answer = State.currentPosition
+
 				{TreatStream T State}
 
 			[]sayAnswerSonar(ID Answer)|T then NewState in

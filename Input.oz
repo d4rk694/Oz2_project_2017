@@ -65,16 +65,16 @@ in
 	  [0 0 0 0 0 0 0 0 0 0]]*/
 
 
-  /*NRow = 5
+  NRow = 5
   NColumn = 5
   Map = [
     [0 0 0 0 0 ]
  	  [0 0 0 0 0 ]
  	  [0 0 1 0 0 ]
  	  [0 0 0 0 0 ]
- 	  [0 0 0 0 0 ]]*/
+ 	  [0 0 0 0 0 ]]
 
-    NRow = 7
+    /*NRow = 7
     NColumn = 7
     Map = [
       [0 0 0 0 0 1 0]
@@ -83,12 +83,12 @@ in
       [0 0 0 0 0 1 1]
       [0 0 1 0 0 1 1]
       [1 0 0 0 0 0 0]
-      [1 1 0 0 1 0 0]]
+      [1 1 0 0 1 0 0]]*/
 
 %%%% Players description %%%%
 
-   NbPlayer = 2
-   Players = [random basicAI random random]
+   NbPlayer = 3
+   Players = [basicAI basicAI random random]
    Colors = [red blue green yellow white black]
 
 %%%% Thinking parameters (only in simultaneous) %%%%
@@ -102,7 +102,7 @@ in
 
 %%%% Life %%%%
 
-   MaxDamage = 2
+   MaxDamage = 4
 
 %%%% Number of load for each item %%%%
 

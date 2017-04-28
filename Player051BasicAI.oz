@@ -74,23 +74,27 @@ define
  		Direction
 		in
 		P = State.currentPosition
-		if State.closestEnemyPos \= nil then
+		/*if State.closestEnemyPos \= nil then
 			if ({OS.rand} mod 2) == 1 then
 				%go to x
-				if (State.currentPosition.x - State.closestEnemyPos.x) < 0 then
+				if (State.currentPosition.x - State.closestEnemyPos.x) < 0 andthen ({CanMoveTo P.x-1 P.y Map} == yes andthen {FindPointInList State.path pt(x:P.x-1 y:P.y)} == no) then
 					Direction = north
-				else
+				elseif ({CanMoveTo P.x+1 P.y Map} == yes andthen {FindPointInList State.path pt(x:P.x+1 y:P.y)} == no) then
 					Direction = south
+				else
+					Direction = surface
 				end
 			else
 				%go to y
-				if (State.currentPosition.y - State.closestEnemyPos.y) < 0 then
+				if (State.currentPosition.y - State.closestEnemyPos.y) < 0 andthen ({CanMoveTo P.x P.y+1 Map} == yes andthen {FindPointInList State.path pt(x:P.x y:P.y+1)} == no) then
 					Direction = west
-				else
+				elseif ({CanMoveTo P.x P.y-1 Map} == yes andthen {FindPointInList State.path pt(x:P.x y:P.y-1)} == no) then
 					Direction = east
+				else
+					Direction = surface
 				end
 			end
-		else
+		else*/
 			if ({CanMoveTo P.x-1 P.y Map} == yes andthen {FindPointInList State.path pt(x:P.x-1 y:P.y)} == no) then
 				Direction = north
 			elseif ({CanMoveTo P.x P.y+1 Map} == yes andthen {FindPointInList State.path pt(x:P.x y:P.y+1)} == no) then
@@ -102,7 +106,7 @@ define
 			else
 				Direction = surface
 			end
-		end
+		%end
 
 	 	Direction
 	end
@@ -599,13 +603,13 @@ end %fun
 					P.x= ({OS.rand} mod Input.nRow)+1
 				end
 				ID = State.idPlayer
-				Answer = P
-
+				%Answer = P
+				Answer = State.currentPosition
 				{TreatStream T State}
 
 			[]sayAnswerSonar(ID Answer)|T then NewState in
 				if ID \= nil then
-					{System.showInfo '[RADIO] '#ID.name #' has been detected at position '#Answer.x #'-'#Answer.y#' by the sonar'}
+					{System.showInfo '***********[RADIO] '#ID.name #' has been detected at position '#Answer.x #'-'#Answer.y#' by the sonar'}
 					NewState = {StateModification State changeEnemy Answer}
 				end
 				{TreatStream T NewState}
