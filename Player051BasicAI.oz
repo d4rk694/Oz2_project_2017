@@ -235,7 +235,6 @@ define
 		end
 
 		if Value == 'changeEnemy' then
-			{System.showInfo '-------Update closestEnemyPos Value'}
 			NewState.closestEnemyPos = Result
 		else
 			NewState.closestEnemyPos = State.closestEnemyPos
@@ -246,7 +245,6 @@ define
 	%TODO change the list when postion sonar in state received
 	fun{GenerateItem State} List Value Charged in
 		if State.closestEnemyPos \= nil then
-			{System.showInfo '----No More Sonar'}
 			% 66% missile and 33% mine
 			List = [missile missile mine]
 			Value = {GetRandomElem List 3}
@@ -480,33 +478,33 @@ end %fun
 				{TreatStream T State}
 
 			[]sayMove(ID Direction)|T then NewState in
-				if ID \= nil then
-					{System.showInfo '[RADIO] '#ID.name#' has moved to '#Direction}
+				if ID \= nil andthen State.idPlayer \= nil then
+					{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name#' has moved to '#Direction}
 				end
 				{TreatStream T State}
 
 			[]saySurface(ID)|T then NewState in
-				if ID \= nil then
-					{System.showInfo '[RADIO] '#ID.name#' has made surface'}
+				if ID \= nil andthen State.idPlayer \= nil then
+					{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name#' has made surface'}
 				end
 				{TreatStream T State}
 
 			[]sayCharge(ID KindItem)|T then NewState in
-				if ID \= nil then
-					{System.showInfo '[RADIO] '#ID.name#' has Charged a '#KindItem}
+				if ID \= nil andthen State.idPlayer \= nil then
+					{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name#' has Charged a '#KindItem}
 				end
 				{TreatStream T State}
 
 			[]sayMinePlaced(ID)|T then NewState in
-				if ID \= nil then
-					{System.showInfo '[RADIO] '#ID.name#' has planted a mine'}
+				if ID \= nil andthen State.idPlayer \= nil then
+					{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name#' has planted a mine'}
 				end
 				{TreatStream T State}
 
 				%TODO Check correct
 			[]sayMissileExplode(ID Position ?Message)|T then NewState Distance Damage LifeLeft in
-				if ID \= nil then
-					{System.showInfo '[RADIO] '#ID.name#' launched a missile at the coordonate '#Position.x#'-'#Position.y}
+				if ID \= nil andthen State.idPlayer \= nil then
+					{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name#' launched a missile at the coordonate '#Position.x#'-'#Position.y}
 				end
 				Distance = {DistanceFrom Position State.currentPosition}
 				if Distance == 0 then
@@ -526,8 +524,8 @@ end %fun
 				{TreatStream T NewState}
 
 			[]sayMineExplode(ID Position ?Message)|T then NewState Distance Damage LifeLeft in
-				if ID \= nil then
-					{System.showInfo '[RADIO] '#ID.name#' blow a mine at the coordonate '#Position.x#'-'#Position.y}
+				if ID \= nil andthen State.idPlayer \= nil then
+					{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name#' blow a mine at the coordonate '#Position.x#'-'#Position.y}
 				end
 				Distance = {DistanceFrom Position State.currentPosition}
 				if Distance == 0 then
@@ -551,14 +549,12 @@ end %fun
 				ID = State.idPlayer
 				case Drone
 				of drone(row:X) then
-					{System.showInfo '[RADIO] A Drone has been deployed on the row '#X}
 					if X == State.currentPosition.x then
 						Answer = true
 					else
 						Answer = false
 					end
 				[] drone(column:Y) then
-					{System.showInfo '[RADIO] A Drone has been deployed on the column '#Y}
 					if Y == State.currentPosition.y then
 						Answer = true
 					else
@@ -570,25 +566,26 @@ end %fun
 				{TreatStream T State}
 
 			[]sayAnswerDrone(Drone ID Answer)|T then NewState in
-				if Answer then
-					case Drone
-					of drone(row:X) then
-						{System.showInfo '[RADIO] '#ID.name#' is on the row '#X}
-					[] drone(column:Y) then
-						{System.showInfo '[RADIO] '#ID.name#' is on the column '#Y}
+				if ID \= nil andthen State.idPlayer \= nil then
+					if Answer then
+						case Drone
+						of drone(row:X) then
+							{System.showInfo '[RADIO] '#ID.name#' is on the row '#X}
+						[] drone(column:Y) then
+							{System.showInfo '[RADIO] '#ID.name#' is on the column '#Y}
+						else
+							{System.showInfo 'Problem Drone'}
+						end
 					else
-						{System.showInfo 'Problem Drone'}
+						{System.showInfo '[RADIO] '#ID.name#' isn\'t on the range of the drone'}
 					end
-				else
-					{System.showInfo '[RADIO] '#ID.name#' isn\'t on the range of the drone'}
 				end
 
 				{TreatStream T State}
 
 				%TODO
-			[]sayPassingSonar(?ID ?Answer)|T then NewState P in
-				{System.showInfo '[RADIO] A sonar signal has been capted'}
 
+			[]sayPassingSonar(?ID ?Answer)|T then NewState P in
 				if ({OS.rand } mod 2)  == 0 then
 					%X correct
 					P = pt(x:_ y:_)
@@ -606,22 +603,22 @@ end %fun
 				{TreatStream T State}
 
 			[]sayAnswerSonar(ID Answer)|T then NewState in
-				if ID \= nil then
-					{System.showInfo '***********[RADIO] '#ID.name #' has been detected at position '#Answer.x #'-'#Answer.y#' by the sonar'}
+				if ID \= nil andthen State.idPlayer \= nil then
+					{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name #' has been detected at position '#Answer.x #'-'#Answer.y#' by the sonar'}
 					NewState = {StateModification State changeEnemy Answer}
 				end
 				{TreatStream T NewState}
 
 
 			[]sayDeath(ID)|T then NewState in
-				if ID \= nil then
-					{System.showInfo '[RADIO] '#ID.name#' is dead'}
+				if ID \= nil andthen State.idPlayer \= nil then
+					{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name#' is dead'}
 				end
 				{TreatStream T State}
 
 			[]sayDamageTaken(ID Damage LifeLeft)|T then NewState in
-				if ID \= nil then
-					{System.showInfo '[RADIO] '#ID.name#' has taken ' #Damage#' damage(s) [LIFELEFT = '#LifeLeft#']'}
+				if ID \= nil andthen State.idPlayer \= nil then
+					{System.showInfo '[RADIO#'#State.idPlayer.id#'] '#ID.name#' has taken ' #Damage#' damage(s) [LIFELEFT = '#LifeLeft#']'}
 				end
 				{TreatStream T State}
 
