@@ -284,6 +284,8 @@ define
 				%Place a mine if ready
 				P={PositionToFire State.currentPosition 0 Input.minDistanceMine Input.maxDistanceMine nil}
 				info(item:mine val:mine(P) firedOnPos:false)
+			else
+				info(item:nil val:nil firedOnPos:false)
 			end
 		else
 			if (State.counterSonar >= Input.sonar) then
