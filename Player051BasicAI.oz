@@ -74,27 +74,22 @@ define
  		Direction
 		in
 		P = State.currentPosition
-		/*if State.closestEnemyPos \= nil then
-			if ({OS.rand} mod 2) == 1 then
-				%go to x
-				if (State.currentPosition.x - State.closestEnemyPos.x) < 0 andthen ({CanMoveTo P.x-1 P.y Map} == yes andthen {FindPointInList State.path pt(x:P.x-1 y:P.y)} == no) then
-					Direction = north
-				elseif ({CanMoveTo P.x+1 P.y Map} == yes andthen {FindPointInList State.path pt(x:P.x+1 y:P.y)} == no) then
-					Direction = south
-				else
-					Direction = surface
-				end
+
+		%WORK but bloked when he arrive on the possition
+		if State.closestEnemyPos \= nil then
+			if (State.currentPosition.x >= State.closestEnemyPos.x ) andthen ({CanMoveTo P.x-1 P.y Map} == yes andthen {FindPointInList State.path pt(x:P.x-1 y:P.y)} == no) then
+				Direction = north
+			elseif (State.currentPosition.y =< State.closestEnemyPos.y ) andthen ({CanMoveTo P.x P.y+1 Map} == yes andthen {FindPointInList State.path pt(x:P.x y:P.y+1)} == no) then
+				Direction = east
+			elseif (State.currentPosition.x =< State.closestEnemyPos.x ) andthen ({CanMoveTo P.x+1 P.y Map} == yes andthen {FindPointInList State.path pt(x:P.x+1 y:P.y)} == no) then
+				Direction = south
+			elseif (State.currentPosition.y >= State.closestEnemyPos.y ) andthen ({CanMoveTo P.x P.y-1 Map} == yes andthen {FindPointInList State.path pt(x:P.x y:P.y-1)} == no) then
+				Direction = west
 			else
-				%go to y
-				if (State.currentPosition.y - State.closestEnemyPos.y) < 0 andthen ({CanMoveTo P.x P.y+1 Map} == yes andthen {FindPointInList State.path pt(x:P.x y:P.y+1)} == no) then
-					Direction = west
-				elseif ({CanMoveTo P.x P.y-1 Map} == yes andthen {FindPointInList State.path pt(x:P.x y:P.y-1)} == no) then
-					Direction = east
-				else
-					Direction = surface
-				end
+				Direction = surface
 			end
-		else*/
+		else
+
 			if ({CanMoveTo P.x-1 P.y Map} == yes andthen {FindPointInList State.path pt(x:P.x-1 y:P.y)} == no) then
 				Direction = north
 			elseif ({CanMoveTo P.x P.y+1 Map} == yes andthen {FindPointInList State.path pt(x:P.x y:P.y+1)} == no) then
@@ -106,7 +101,7 @@ define
 			else
 				Direction = surface
 			end
-		%end
+		end
 
 	 	Direction
 	end
@@ -247,6 +242,7 @@ define
 		end
 		NewState
 	end
+
 	%TODO change the list when postion sonar in state received
 	fun{GenerateItem State} List Value Charged in
 		if State.closestEnemyPos \= nil then
@@ -256,8 +252,10 @@ define
 			Value = {GetRandomElem List 3}
 		else
 			% 30% sonar, missile, mine and 10% drone
-			List = [mine mine mine missile missile missile sonar sonar sonar drone]
-			Value = {GetRandomElem List 10}
+			/*List = [mine mine mine missile missile missile sonar sonar sonar drone]
+			Value = {GetRandomElem List 10}*/
+			List = [sonar sonar sonar]
+			Value = {GetRandomElem List 3}
 		end
 
 		case Value of mine then
