@@ -107,7 +107,7 @@ define
             P4=pt(x:P.x y:P.y-1)
 
             {Send PortWindow missile(ID P)}
-            {Delay 500}
+            {Delay 750}
             {Send PortWindow removeMine(ID P)}
             {Send PortWindow explosion(ID P)}
             %Send mini explosion to adjacents points

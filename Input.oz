@@ -71,8 +71,8 @@ in
     [0 0 0 0 0 ]
  	  [0 0 0 0 0 ]
  	  [0 0 1 0 0 ]
- 	  [0 0 1 0 0 ]
- 	  [0 0 1 0 0 ]]
+ 	  [0 0 0 0 0 ]
+ 	  [0 0 0 0 0 ]]
 /*
     NRow = 7
     NColumn = 7
@@ -87,7 +87,7 @@ in
 
 %%%% Players description %%%%
 
-   NbPlayer = 3
+   NbPlayer = 2
    Players = [random random random random]
    Colors = [red blue green yellow white black]
 

@@ -2,7 +2,7 @@
 functor
 import
    Player051Random
-   %Player002AI
+   Player051BasicAI
    %Player005Custom
    %Player053Human
 export
@@ -13,7 +13,7 @@ in
    fun{PlayerGenerator Kind Color ID}
       case Kind
          of random then {Player051Random.portPlayer Color ID}
-         %[] player002ai then {Player002AI.portPlayer Color ID}
+         [] basicAi then {Player051BasicAI.portPlayer Color ID}
       end
    end
 end

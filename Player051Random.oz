@@ -353,7 +353,7 @@ fun{StartPlayer Color ID}
         {NewPort Stream Port}
         thread
 				State = {GenerateInitialState}
-				State.idPlayer = id(id:ID color:Color name:'Player'#ID)
+				State.idPlayer = id(id:ID color:Color name:'Player'#ID#'-rand')
 				State.lives = Input.maxDamage
         {TreatStream Stream  State}
         end
